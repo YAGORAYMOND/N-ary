@@ -1,0 +1,505 @@
+<!--
+ ===========================================================
+  N-ARY ENGINE: TO-DO LIST (ROADMAP DE DESENVOLUPAMENT)
+  ===========================================================
+FALLOS:
+- Les barres no van independents
+- Les velocitats diferents no van
+- Quan borres una es borren les dues
+- Molaria que es marques la barra en que esta seleccionada
+- no s'executa una sola vegada el sample quan cliques el x sino moltes i nomes hauria de ser una per click
+
+
+
+  [ ] 1. AUDIO ENGINE: FIDELITAT I FÍSICA
+      [ ] Implementar PINK NOISE: El 'source noise' actual és blanc. 
+          Necessitem un filtre de 1/f per a textures orgàniques.
+      [ ] LFO MODULATION ENGINE: Fer que 'cycle' i 'drift' realment 
+          modifiquin els paràmetres en temps real (AudioParam automation).
+      [ ] TRUE JITTER: Afegir el paràmetre 'jitter' per desplaçar el start-time 
+          de cada gra aleatòriament (actualment el rate és massa rítmic).
+      [ ] FEEDBACK DELAY NETWORK: Millorar el 'reverb' perquè no sigui només 
+          convolució, sinó una cua que es retroalimenta infinitament.
+
+  [ ] 2. TONALITAT: MICROTONALITAT NATIVA
+      [ ] TUNING TABLES: Crear un diccionari amb sistemes reals 
+          (31-TET, 19-TET, Pythagorean, Just Intonation).
+      [ ] SCALE LOCKING: Implementar la funció 'scale' per forçar que 
+          els 'step' i 'pitch' caiguin sempre en ràtios harmòniques.
+      [ ] POLYPHONIC FLUX: Permetre que un sol flux 'N-ary' generi 
+          acords complexos si es defineixen múltiples ràtios al pitch.
+
+  [ ] 3. INTERFÍCIE (UI/UX)
+      [ ] SYNTAX HIGHLIGHTING: Afegir colors al textarea perquè es 
+          distingeixin 'source', 'pitch', i els valors numèrics.
+      [ ] FILE DROP SOURCE: Permetre arrossegar un .wav/.mp3 per usar-lo 
+          com a buffer en lloc de només oscil·ladors (Essencial Microcosm).
+      [ ] HOLOGRAPHIC VISUALIZER: Que el canvas reaccioni realment a la 
+          freqüència i densitat de cada flux de forma independent.
+
+  [ ] 4. OPTIMITZACIÓ (ELIMINACIÓ DEFINITIVA DE CLICKS)
+      [ ] AUDIO WORKLET: Moure tot el càlcul de grans a un fil separat (Worker). 
+          setInterval() és poc precís i és el culpable dels micro-clicks rítmics.
+      [ ] ZERO-CROSSING DETECTION: Que el gra només s'inicii quan l'ona 
+          està a zero per evitar transitoris agressius.
+
+  [ ] 5. SISTEMA N-ary (LÒGICA PROPIA)
+      [ ] INTERFERÈNCIA: Que un flux pugui modular-ne un altre 
+          (Ex: 'reverb' de Flux A controlat per l'activitat de Flux B).
+      [ ] MACRO/MICRO FOCUS: Refinar la transició entre els dos modes 
+          com una interpolació suau d'envolupants.
+
+[ ] control + punt stop
+[ ] quan reevalues s'elimina el sinte 
+[ ] drag and drop samples
+[ ] loop y n
+[ ] execute single chunks
+[ ] tab indentation not working
+[ ] pitch 0 step 1 2 3 no funciona!
+[ ] implementar un log per veure els errors
+[ ] line in
+[ ] sequencer (1 2 1 _) _:allarga la nota , s: silence?
+
+[ ] implementar tot lo de al v3.1 que s'ha perdut
+[ ] implemetnar un volume (gain) (0-1) (time s) volume 0.4 3
+[ ] implementar el tema dels patterns amb tecla sobre la zona
+  ===========================================================
+
+
+
+atmosfera > source ah_E3
+  rate 2
+  pitch 12
+  grain 500 //ms
+  reverb 0.1
+  activity 0.4 //probabilitat de sonar (0-1)
+  shimmer 0.2 //afegeix harmonics i detune (0-1)
+  scatter 1  //rebota els grans 
+
+ritme > source fatbass_1
+  rate 2
+  pitch -12
+  grain 500
+  reverb 0.1
+  shimmer 0
+-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Nary: a sample-oriented live coding environment</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <style>
+        body { margin: 0; background: #1a1a1a; color: white; font-family: monospace; }
+        #drop-zone { height: 60px; border: 2px dashed #4CAF50; margin: 10px; display: flex; align-items: center; justify-content: center; background: #252525; border-radius: 8px; }
+        .CodeMirror { height: 400px; font-size: 18px; border-bottom: 1px solid #444; }
+        #controls { padding: 15px; background: #333; display: flex; gap: 10px; }
+        button { cursor: pointer; padding: 10px 20px; background: #4CAF50; border: none; color: white; border-radius: 4px; font-weight: bold; }
+        #log { padding: 10px; color: #4CAF50; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div id="drop-zone">DROP .WAV HERE</div>
+<div id="log">Waiting for file...</div>
+
+<textarea id="code-editor">
+
+drums > source fatbass_1 loop 4
+atmosfera2 > source ah_E3 loop 6
+
+
+  
+</textarea>
+
+<div id="controls">
+    <button onclick="execute()">EXECUTE (Ctrl+Enter)</button>
+    <button onclick="stop()" style="background:#f44336;">STOP (Ctrl+.)</button>
+</div>
+
+<script>
+// 1. VARIABLES GLOBALS
+    window.samples = {}; 
+    const logElement = document.getElementById('log');
+    window.activeLoops = {}; 
+    //per controlar el widget de la barra:
+    let currentLoopWidget = null; // Guarda el widget visual de CodeMirror
+    let targetLoopDuration = 0;   // Durada en segons
+    let loopEvents = [];          // Esdeveniments (valors entre 0 i 1)
+    let isPressingErase = false;  // Estat de la tecla 'o'
+
+    // CREEM LA REVERB GLOBAL (Una sola vegada)
+    const globalReverb = new Tone.Reverb({
+        decay: 4,       // Segons de cua
+        wet: 0.5        // Quantitat de barreja (50%)
+    }).toDestination();
+    globalReverb.generate(); // Prepara l'efecte
+
+    // 2. EL MOTOR (Nary Engine)
+    const nary = {
+        createFlux: (id, params) => {
+            const sourceName = params.source ? params.source.trim() : 'sine';
+            if (!window.samples[sourceName]) return;
+
+            Tone.getDestination().volume.value = 0; 
+            Tone.Transport.start(); 
+
+            const interval = 1/30; // 30Hz de precisió fixa per defecte
+            const shimmer = params.shimmer ? parseFloat(params.shimmer) : 0;
+            const scatter = params.scatter ? parseFloat(params.scatter) : 0;
+            const harmonics = [1, 2, 1.5, 0.75, 4]; 
+            
+            // NOU: Llista interna d'esdeveniments que ja han disparat l'àudio en aquesta volta
+            let firedEvents = []; // <-- NOU
+
+            const loop = new Tone.Loop(time => {
+                // Sincronització amb la barra visual (si està activa)
+                if (naryUI.events[id]) { 
+                    const currentDuration = naryUI.durations[id] || 5; 
+                    const currentProgress = (Tone.Transport.seconds % currentDuration) / currentDuration; 
+                    
+                    // NOU: Si el capçal grog torna a començar al principi del loop (prop de zero), netegem l'historial
+                    if (currentProgress < 0.04) { // <-- NOU
+                        firedEvents = []; // <-- NOU
+                    } // <-- NOU
+
+                    // CAMBIAT: Busquem l'esdeveniment exacte (el punt blanc) on està a punt de col·lidir el capçal grog
+                    const matchingEvent = naryUI.events[id].find(evPos => Math.abs(currentProgress - evPos) < 0.02); // <-- CAMBIAT
+                    
+                    // NOU: Lògica One-shot per evitar que es re-dispari mentre creua el gruix de la línia blanca
+                    if (matchingEvent !== undefined) { // <-- NOU
+                        if (firedEvents.includes(matchingEvent)) { // <-- NOU
+                            return; // <-- NOU: Ja ha sonat en aquesta passada, bloquegem el dispar repetit!
+                        } // <-- NOU
+                        firedEvents.push(matchingEvent); // <-- NOU: Marquem com a "ja disparat"
+                    } else { // <-- NOU
+                        // Si la línia groga no està trepitjant cap línia blanca d'aquesta ID, silenci
+                        return;
+                    }
+                }
+
+                // A partir d'aquí, el teu codi original de sempre continua igual...
+                const activity = params.activity ? parseFloat(params.activity) : 1;
+                if (Math.random() > activity) return;
+
+                const revValue = params.reverb ? parseFloat(params.reverb) : 0.5;
+                
+                harmonics.forEach((h, i) => {
+                    // La probabilitat de veus extra depèn del shimmer i el scatter
+                    if (i > 0 && Math.random() > (shimmer + scatter) / 2) return;
+
+                    // L'essència del SCATTER: un desplaçament en el temps que no afecta la nota base (i=0)
+                    const delay = i === 0 ? 0 : Math.random() * (scatter * 0.3);
+                    const grainTime = time + delay;
+
+                    const fFreq = i === 0 ? 8000 : (1 - revValue) * 4000 + 200;
+                    const filter = new Tone.Filter(fFreq, "lowpass").connect(globalReverb);
+
+                    const envelope = new Tone.Gain(0).connect(filter);
+                    const player = new Tone.Player({
+                        url: window.samples[sourceName],
+                        autostart: false,
+                        onload: () => {
+                            const p = parseFloat(params.pitch) || 0;
+                            const detune = (Math.random() * 0.1 - 0.05) * shimmer;
+                            player.playbackRate = (Math.pow(2, p / 12) * h) + detune;
+                            
+                            let g = params.grain ? parseFloat(params.grain) : 500;
+                            // La nota base es fa més llarga amb més scatter per donar context
+                            if (i === 0 && scatter > 0) g *= (1 + scatter); 
+                            if (i > 0) g *= (0.4 + Math.random() * 0.4); 
+                            
+                            const duration = g / 1000;
+                            const panner = new Tone.Panner(Math.random() * 2 - 1).connect(envelope);
+                            player.connect(panner);
+
+                            const vol = i === 0 ? 1.3 : (0.7 / i) * (shimmer + scatter);
+                            
+                            envelope.gain.setValueAtTime(0, grainTime);
+                            envelope.gain.linearRampToValueAtTime(vol, grainTime + 0.03);
+                            envelope.gain.setValueAtTime(vol, grainTime + duration - 0.03);
+                            envelope.gain.linearRampToValueAtTime(0, grainTime + duration);
+
+                            player.start(grainTime);
+                            player.stop(grainTime + duration);
+
+                            setTimeout(() => {
+                                player.dispose(); panner.dispose(); envelope.dispose(); filter.dispose();
+                            }, (duration + 2) * 1000);
+                        }
+                    });
+                });
+
+            }, interval).start(0);
+            
+            activeLoops[id] = loop;
+        }
+    };
+
+
+    // 3. INTERFICIE VISUAL
+    const naryUI = {
+        widgets: {},      
+        durations: {},    // MODIFICAT: Ara guardem la durada de cada ID: { atmosfera: 4, ritme: 2 }
+        events: {},       
+        isEraseActive: false,
+
+        injectBar: function(id, lineIndex) {
+            if (this.widgets[id]) {
+                this.widgets[id].clear();
+            }
+
+            if (!this.events[id]) {
+                this.events[id] = [];
+            }
+
+            // Si aquesta ID no té cap durada assignada encara, li donem 5s per defecte
+            if (!this.durations[id]) {
+                this.durations[id] = 5;
+            }
+
+            const container = document.createElement('div');
+            container.style.cssText = 'display: inline-block; margin-left: 15px; vertical-align: middle;';
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 300;
+            canvas.height = 18;
+            canvas.style.cssText = 'background: #000; border: 1px solid #555; border-radius: 3px; display: block;';
+
+            container.appendChild(canvas);
+
+            this.widgets[id] = editor.addLineWidget(lineIndex, container, {
+                coverGutter: false,
+                noHScroll: true
+            });
+
+            this.startAnimation(id, canvas);
+        },
+
+        startAnimation: function(id, canvas) {
+            const ctx = canvas.getContext('2d');
+            const draw = () => {
+                if (!document.body.contains(canvas)) {
+                    delete this.widgets[id];
+                    return;
+                }
+                requestAnimationFrame(draw);
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // MODIFICAT: Cada capçal utilitza la seva pròpia durada independent per moure's
+                const currentDuration = this.durations[id] || 5;
+                const progress = (Tone.Transport.seconds % currentDuration) / currentDuration;
+                const headX = progress * canvas.width;
+
+                if (this.isEraseActive) {
+                    this.events[id] = this.events[id].filter(ev => Math.abs(ev - progress) > 0.03);
+                    ctx.fillStyle = 'rgba(244, 67, 54, 0.4)';
+                    ctx.fillRect(headX - 6, 0, 12, canvas.height);
+                }
+
+                // Dibuixar línies blanques de la seva pròpia memòria
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                if (this.events[id]) {
+                    this.events[id].forEach(ev => {
+                        ctx.beginPath(); ctx.moveTo(ev * canvas.width, 0); ctx.lineTo(ev * canvas.width, canvas.height); ctx.stroke();
+                    });
+                }
+
+                // Dibuixar capçal grog
+                ctx.strokeStyle = this.isEraseActive ? '#f44336' : '#FFEB3B';
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(headX, 0); ctx.lineTo(headX, canvas.height); ctx.stroke();
+            };
+            draw();
+        }
+    };
+
+
+    // 4. CONTROL DE TECLAT (inputs)
+    const naryInput = {
+        init: function() {
+            document.addEventListener('keydown', e => {
+                // Si la tecla s'està mantenint premuda, ignorem el pols natiu del SO
+                if (e.repeat) return;
+
+                const key = e.key.toLowerCase();
+                if (key !== 'x' && key !== 'o') return;
+
+                // NOU I SEGUR: Calculem la ID activa NOMÉS en el moment exacte de clicar
+                const cursorLine = editor.getCursor().line;
+                let activeId = null;
+
+                // Busquem cap enrere des de la línia actual per trobar el capçal '>'
+                for (let i = cursorLine; i >= 0; i--) {
+                    const lineText = editor.getLine(i);
+                    if (lineText && lineText.includes('>')) {
+                        activeId = lineText.split('>')[0].trim();
+                        break;
+                    }
+                }
+
+                if (!activeId || !naryUI.events[activeId]) return;
+
+                // CAMBIAT: Calculem el progrés usant la durada específica d'aquesta ID de línia
+                const currentDuration = naryUI.durations[activeId] || 5; // <-- NOU
+                const progress = (Tone.Transport.seconds % currentDuration) / currentDuration; // <-- CAMBIAT
+
+                if (key === 'x') {
+                    naryUI.events[activeId].push(progress);
+                }
+                
+                if (key === 'o') {
+                    naryUI.isEraseActive = true;
+                }
+            });
+
+            document.addEventListener('keyup', e => {
+                if (e.key.toLowerCase() === 'o') {
+                    naryUI.isEraseActive = false;
+                }
+            });
+        }
+    };
+
+// Inicialitzem els controls de teclat un sol cop
+naryInput.init();
+
+    // 5. EDITOR
+    const editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+        lineNumbers: true, 
+        mode: "javascript", 
+        theme: "monokai"
+    });
+
+    // 4. DRAG & DROP MULTI-SAMPLE
+    const dropZone = document.getElementById('drop-zone');
+    dropZone.ondragover = e => e.preventDefault();
+    dropZone.ondrop = e => {
+        e.preventDefault();
+        const files = Array.from(e.dataTransfer.files);
+        files.forEach(file => {
+            if (file.type.includes('audio')) {
+                const name = file.name.split('.')[0]; // Nom sense .wav
+                window.samples[name] = URL.createObjectURL(file);
+                console.log("Carregat:", name);
+            }
+        });
+        logElement.innerText = "Samples: " + Object.keys(window.samples).join(", ");
+    };
+
+    // 6. EXECUCIÓ (Amb el reset de volum corregit)
+    async function execute() {
+        console.log("Comandament EXECUTE rebut");
+        logElement.innerText = "EXECUTING...";
+        
+        await Tone.start();
+        stop(); 
+        
+        Tone.getDestination().volume.value = 0; 
+        
+        const code = editor.getValue();
+        const lines = code.split('\n');
+        
+        let currentId = null;
+        let params = {};
+
+        lines.forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith('//')) return;
+
+            if (line.includes('>')) {
+                if (currentId) nary.createFlux(currentId, params);
+                
+                const parts = line.split('>');
+                currentId = parts[0].trim();
+                params = {}; 
+                
+                const inline = parts[1].trim().split(/\s+/);
+                for (let i = 0; i < inline.length; i += 2) {
+                    if (inline[i] && inline[i+1]) {
+                        params[inline[i]] = inline[i+1];
+                        
+                        // NOU: Si l'usuari ha definit un 'loop X' a la línia principal, guardem la durada real immediatament
+                        if (inline[i] === 'loop') { // <-- NOU
+                            naryUI.durations[currentId] = parseFloat(inline[i+1]); // <-- NOU
+                        } // <-- NOU
+                    }
+                }
+                
+                naryUI.injectBar(currentId, lines.indexOf(line));
+            } 
+            else if (currentId && (line.startsWith(' ') || line.startsWith('\t'))) {
+                const p = trimmed.split(/\s+/);
+                if (p[0] && p[1]) {
+                    params[p[0]] = p[1];
+                    
+                    // NOU: Si el 'loop X' s'ha definit a sota indentat, també l'enxampem i el guardem
+                    if (p[0] === 'loop') { // <-- NOU
+                        naryUI.durations[currentId] = parseFloat(p[1]); // <-- NOU
+                    } // <-- NOU
+                }
+            }
+        });
+
+        if (currentId) nary.createFlux(currentId, params);
+        
+        logElement.innerText = "RUNNING: " + Object.keys(activeLoops).join(", ");
+    }
+
+    // 6. STOP (Més net)
+   function stop() {
+        console.log("Comandament STOP rebut");
+        logElement.innerText = "STOPPED";
+
+        // Rebaixem el volum mestre a -Infinity per evitar clics estranys
+        Tone.getDestination().volume.value = -Infinity;
+
+        // Aturem el transport de Tone.js
+        Tone.Transport.stop();
+        Tone.Transport.cancel();
+
+        // Netegem tots els bucles d'àudio actius utilitzant la llista correcta
+        if (window.activeLoops) {
+            Object.values(activeLoops).forEach(loop => {
+                loop.stop();
+                loop.dispose();
+            });
+        }
+        window.activeLoops = {}; // Reiniciem el magatzem de bucles
+
+        // NETEJA DE LES BARRES INTERACTIVES (NaryUI)
+        if (window.naryUI) {
+            // Esborrem físicament tots els canvas de la pantalla
+            Object.values(naryUI.widgets).forEach(w => {
+                if (w && typeof w.clear === 'function') w.clear();
+            });
+            
+            // Reiniciem la memòria visual i de ritmes
+            naryUI.widgets = {};
+            naryUI.events = {};
+        }
+    }
+
+    // Per si fas clic fora de l'editor, que els shortcuts funcionin igual
+    document.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            execute();
+        }
+        if (e.ctrlKey && e.key === '.') {
+            e.preventDefault();
+            stop();
+        }
+    });
+
+</script>
+</body>
+</html>
