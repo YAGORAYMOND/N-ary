@@ -96,36 +96,68 @@ ritme > source fatbass_1
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
     <style>
-        body { margin: 0; background: #1a1a1a; color: white; font-family: monospace; }
-        #drop-zone { height: 60px; border: 2px dashed #4CAF50; margin: 10px; display: flex; align-items: center; justify-content: center; background: #252525; border-radius: 8px; }
-        .CodeMirror { height: 400px; font-size: 18px; border-bottom: 1px solid #444; }
-        #controls { padding: 15px; background: #333; display: flex; gap: 10px; }
-        button { cursor: pointer; padding: 10px 20px; background: #4CAF50; border: none; color: white; border-radius: 4px; font-weight: bold; }
-        #log { padding: 10px; color: #4CAF50; font-size: 12px; }
+        body {
+                margin: 0;
+                background: #1a1a1a;
+                color: white;
+                font-family: monospace;
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+            }
+
+            .cm-s-monokai.CodeMirror {
+                flex: 1;
+                font-size: 18px;
+                background: #1a1a1a;
+            }
+
+            #log {
+                padding: 4px 8px;
+                color: #888;
+                border-top: 1px solid #333;
+                }
+
+            .cm-s-monokai .CodeMirror-gutters {
+                background: #1a1a1a;
+                border-right: none;
+            }
+
+            .cm-s-monokai .CodeMirror-linenumber {
+                color: #888;
+            }
+
+            .cm-comment {
+                color: #555;
+            }
+            
+           .CodeMirror-hscrollbar {
+                display: none !important;
+            }
     </style>
 </head>
 <body>
 
-<div id="drop-zone">DROP .WAV HERE</div>
-<div id="log">Waiting for file...</div>
-
 <textarea id="code-editor">
+
+//imports
+repo "https://raw.githubusercontent.com/YAGORAYMOND/samples/main"
+import fatbass_1 "perc/fatbass/fatbass_1.wav"
+import ah_E3 "ah/ah_E3.wav"
 
 drums > source fatbass_1 loop 4
 atmosfera2 > source ah_E3 loop 6
 
-
-  
+// EXECUTE (Ctrl+Enter)
+// STOP (Ctrl+.)
 </textarea>
 
-<div id="controls">
-    <button onclick="execute()">EXECUTE (Ctrl+Enter)</button>
-    <button onclick="stop()" style="background:#f44336;">STOP (Ctrl+.)</button>
-</div>
+<div id="log">Console: idle</div>
 
 <script>
 // 1. VARIABLES GLOBALS
-    window.samples = {}; 
+    window.samples = {};
+    window.repo = ""; 
     const logElement = document.getElementById('log');
     window.activeLoops = {}; 
     //per controlar el widget de la barra:
@@ -379,26 +411,15 @@ naryInput.init();
         theme: "monokai"
     });
 
-    // 4. DRAG & DROP MULTI-SAMPLE
-    const dropZone = document.getElementById('drop-zone');
-    dropZone.ondragover = e => e.preventDefault();
-    dropZone.ondrop = e => {
-        e.preventDefault();
-        const files = Array.from(e.dataTransfer.files);
-        files.forEach(file => {
-            if (file.type.includes('audio')) {
-                const name = file.name.split('.')[0]; // Nom sense .wav
-                window.samples[name] = URL.createObjectURL(file);
-                console.log("Carregat:", name);
-            }
-        });
-        logElement.innerText = "Samples: " + Object.keys(window.samples).join(", ");
-    };
-
+    
     // 6. EXECUCIÓ (Amb el reset de volum corregit)
     async function execute() {
         console.log("Comandament EXECUTE rebut");
         logElement.innerText = "EXECUTING...";
+        
+        //netejar load samples (pq no es tornin a carregar)
+        window.samples = {};
+        window.repo = "";
         
         await Tone.start();
         stop(); 
@@ -412,8 +433,34 @@ naryInput.init();
         let params = {};
 
         lines.forEach(line => {
+            //commentar amb //
             const trimmed = line.trim();
             if (!trimmed || trimmed.startsWith('//')) return;
+
+            //importar samples 
+            const repoMatch = trimmed.match(
+                /^repo\s+"([^"]+)"$/
+            );
+            if (repoMatch) {
+                window.repo = repoMatch[1];
+                return;
+            }
+
+            const importMatch = trimmed.match(
+                /^import\s+(\S+)\s+"([^"]+)"$/
+            );
+
+            if (importMatch) {
+                const name = importMatch[1];
+                const url = importMatch[2];
+
+                window.samples[name] = window.repo
+                    ? `${window.repo}/${url}`
+                    : url;
+
+                console.log("Imported:", name);
+                return;
+                }            
 
             if (line.includes('>')) {
                 if (currentId) nary.createFlux(currentId, params);
