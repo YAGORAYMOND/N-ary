@@ -1,13 +1,13 @@
 
 # Import samples:
 **Way 1**: Multiple samples from a same repo:
-```
+```ruby
 repo "https://raw.githubusercontent.com/YAGORAYMOND/samples/main"
 import fatbass_1 "perc/fatbass/fatbass_1.wav"
 import ah_E3 "ah/ah_E3.wav"
 ```
 **Way 2**: Multiple samples from different repos:
-```
+```ruby
 import fatbass_1 "https://raw.githubusercontent.com/YAGORAYMOND/samples/refs/heads/main/perc/fatbass/fatbass_1.wav"
 import ah_E3 "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/ah/ah_E3.wav"
 ```
