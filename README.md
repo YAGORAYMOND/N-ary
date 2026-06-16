@@ -1,3 +1,29 @@
+
+# Import samples:
+**Way 1**: Multiple samples from a same repo:
+```
+repo "https://raw.githubusercontent.com/YAGORAYMOND/samples/main"
+import fatbass_1 "perc/fatbass/fatbass_1.wav"
+import ah_E3 "ah/ah_E3.wav"
+```
+**Way 2**: Multiple samples from different repos:
+```
+import fatbass_1 "https://raw.githubusercontent.com/YAGORAYMOND/samples/refs/heads/main/perc/fatbass/fatbass_1.wav"
+import ah_E3 "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/ah/ah_E3.wav"
+```
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------
+
 # 〰️ N-ary | A granular synthesis live coding envirnoment
 
 **N-ARY** is a web-based live coding environment for harmonic granular synthesis. It allows users to generate organic sound textures, sonic clouds, and microtonal atmospheres using a minimalist and intuitive programming language.
