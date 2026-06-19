@@ -16,13 +16,14 @@ N-ary is a web-based environment where sounds are organized into playable struct
 ## Basic structure
 Each track is defined as follows:
 > *track_name* `> source` *sample_name* `loop` *loop_duration (sec)*
+
 When executing, a **loop bar** appears.
-In this bar, there is a yellow **timeline**
+In this bar, there is a yellow **timeline**.
 
 
 
 
-## 
+
 
 # Samples:
 ## Import samples:
