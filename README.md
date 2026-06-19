@@ -25,7 +25,7 @@ When executing, a **loop bar** appears for each track.
 
 The moving yellow line shows the current position in the loop.
 
-Click on the loop bar to selet it, then use:
+Click on the loop bar to select it, then use:
   - `p` — Play the sample once
   - `w` — Write an event on the current position
   - `e` — Erase event
