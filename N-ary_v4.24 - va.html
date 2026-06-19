@@ -23,7 +23,7 @@ FALLOS:
 
   [ ] 2. TONALITAT: MICROTONALITAT NATIVA
       [ ] TUNING TABLES: Crear un diccionari amb sistemes reals 
-          (31-TET, 19-TET, Pythagorean, Just Intonation).
+          (31-TEIT, 19-TET, Pythagorean, Just Intonation).
       [ ] SCALE LOCKING: Implementar la funció 'scale' per forçar que 
           els 'step' i 'pitch' caiguin sempre en ràtios harmòniques.
       [ ] POLYPHONIC FLUX: Permetre que un sol flux 'N-ary' generi 
@@ -89,7 +89,7 @@ ritme > source fatbass_1
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Nary: a sample-oriented live coding environment</title>
+    <title>Nary: natural patterns sample-oriented live coding environment</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
@@ -143,13 +143,19 @@ ritme > source fatbass_1
 //imports
 repo "https://raw.githubusercontent.com/YAGORAYMOND/samples/main"
 import fatbass_1 "perc/fatbass/fatbass_1.wav"
-import ah_E3 "ah/ah_E3.wav"
+import guitar "instruments/guitar_C_rec.wav"
 
 drums > source fatbass_1 loop 4
-atmosfera2 > source ah_E3 loop 6
+guitar > source ah_E3 loop 2 
 
 // EXECUTE (Ctrl+Enter)
 // STOP (Ctrl+.)
+
+// w = write
+// p = play
+// e = erase
+// Del = clear
+
 </textarea>
 
 <div id="log">Console: idle</div>
@@ -175,50 +181,18 @@ atmosfera2 > source ah_E3 loop 6
 
     // 2. EL MOTOR (Nary Engine)
     const nary = {
-        createFlux: (id, params) => {
+        fluxParams: {},
+        triggerFlux: (id, params, time, ignoreActivity = false) => {
             const sourceName = params.source ? params.source.trim() : 'sine';
-            if (!window.samples[sourceName]) return;
-
-            Tone.getDestination().volume.value = 0; 
-            Tone.Transport.start(); 
-
-            const interval = 1/30; // 30Hz de precisió fixa per defecte
             const shimmer = params.shimmer ? parseFloat(params.shimmer) : 0;
             const scatter = params.scatter ? parseFloat(params.scatter) : 0;
-            const harmonics = [1, 2, 1.5, 0.75, 4]; 
-            
-            // NOU: Llista interna d'esdeveniments que ja han disparat l'àudio en aquesta volta
-            let firedEvents = []; // <-- NOU
-
-            const loop = new Tone.Loop(time => {
-                // Sincronització amb la barra visual (si està activa)
-                if (naryUI.events[id]) { 
-                    const currentDuration = naryUI.durations[id] || 5; 
-                    const currentProgress = (Tone.Transport.seconds % currentDuration) / currentDuration; 
-                    
-                    // NOU: Si el capçal grog torna a començar al principi del loop (prop de zero), netegem l'historial
-                    if (currentProgress < 0.04) { // <-- NOU
-                        firedEvents = []; // <-- NOU
-                    } // <-- NOU
-
-                    // CAMBIAT: Busquem l'esdeveniment exacte (el punt blanc) on està a punt de col·lidir el capçal grog
-                    const matchingEvent = naryUI.events[id].find(evPos => Math.abs(currentProgress - evPos) < 0.02); // <-- CAMBIAT
-                    
-                    // NOU: Lògica One-shot per evitar que es re-dispari mentre creua el gruix de la línia blanca
-                    if (matchingEvent !== undefined) { // <-- NOU
-                        if (firedEvents.includes(matchingEvent)) { // <-- NOU
-                            return; // <-- NOU: Ja ha sonat en aquesta passada, bloquegem el dispar repetit!
-                        } // <-- NOU
-                        firedEvents.push(matchingEvent); // <-- NOU: Marquem com a "ja disparat"
-                    } else { // <-- NOU
-                        // Si la línia groga no està trepitjant cap línia blanca d'aquesta ID, silenci
-                        return;
-                    }
-                }
-
-                // A partir d'aquí, el teu codi original de sempre continua igual...
-                const activity = params.activity ? parseFloat(params.activity) : 1;
-                if (Math.random() > activity) return;
+            const harmonics = [1, 2, 1.5, 0.75, 4];
+            const activity = params.activity ? parseFloat(params.activity) : 1;
+                if (
+                    !ignoreActivity &&
+                    Math.random() > activity
+                )
+                    return;
 
                 const revValue = params.reverb ? parseFloat(params.reverb) : 0.5;
                 
@@ -248,7 +222,7 @@ atmosfera2 > source ah_E3 loop 6
                             if (i > 0) g *= (0.4 + Math.random() * 0.4); 
                             
                             const duration = g / 1000;
-                            const panner = new Tone.Panner(Math.random() * 2 - 1).connect(envelope);
+                            const panner = new Tone.Panner(0).connect(envelope);
                             player.connect(panner);
 
                             const vol = i === 0 ? 1.3 : (0.7 / i) * (shimmer + scatter);
@@ -267,6 +241,69 @@ atmosfera2 > source ah_E3 loop 6
                         }
                     });
                 });
+            },
+        createFlux: (id, params) => {
+            const sourceName = params.source ? params.source.trim() : 'sine';
+            if (!window.samples[sourceName]) return;
+
+            Tone.getDestination().volume.value = 0; 
+
+            const interval = 1/120; // 120 Hz de precisió fixa per defecte
+            const shimmer = params.shimmer ? parseFloat(params.shimmer) : 0;
+            const scatter = params.scatter ? parseFloat(params.scatter) : 0;
+            const harmonics = [1, 2, 1.5, 0.75, 4]; 
+            
+            //control d'esdeveniments a sonar (barra)
+            let previousTransportSeconds =
+                Tone.Transport.seconds;
+
+            const loop = new Tone.Loop(time => {
+                // Sincronització amb la barra visual (si està activa)
+            if (naryUI.events[id]) {
+                const currentDuration =
+                    naryUI.durations[id] || 5;
+                const currentTransportSeconds =
+                    Tone.Transport.seconds;
+                const startTime =
+                    previousTransportSeconds;
+                const endTime =
+                    currentTransportSeconds;
+                naryUI.events[id].forEach(evPos => {
+                    const eventTime =
+                        evPos * currentDuration;
+                    const startCycle =
+                        Math.floor(
+                            startTime / currentDuration
+                        );
+                    const endCycle =
+                        Math.floor(
+                            endTime / currentDuration
+                        );
+                    for (
+                        let cycle = startCycle;
+                        cycle <= endCycle;
+                        cycle++
+                    ) {
+                        const absoluteEventTime =
+                            cycle * currentDuration +
+                            eventTime;
+                        if (
+                            absoluteEventTime > startTime &&
+                            absoluteEventTime <= endTime
+                        ) {
+                            nary.triggerFlux(
+                                id,
+                                params,
+                                time
+                            );
+                        }
+                    }
+                });
+                previousTransportSeconds =
+                    currentTransportSeconds;
+            }
+               
+                
 
             }, interval).start(0);
             
@@ -281,6 +318,8 @@ atmosfera2 > source ah_E3 loop 6
         durations: {},    // MODIFICAT: Ara guardem la durada de cada ID: { atmosfera: 4, ritme: 2 }
         events: {},       
         isEraseActive: false,
+        eraseId: null,
+        selectedId: null,
 
         injectBar: function(id, lineIndex) {
             if (this.widgets[id]) {
@@ -303,6 +342,10 @@ atmosfera2 > source ah_E3 loop 6
             canvas.width = 300;
             canvas.height = 18;
             canvas.style.cssText = 'background: #000; border: 1px solid #555; border-radius: 3px; display: block;';
+            canvas.addEventListener('click', () => {
+                naryUI.selectedId = id;
+                logElement.innerText = `PATTERN MODE: ${id}`;
+            });
 
             container.appendChild(canvas);
 
@@ -314,24 +357,42 @@ atmosfera2 > source ah_E3 loop 6
             this.startAnimation(id, canvas);
         },
 
+        //crea les barres de esdeveniments
         startAnimation: function(id, canvas) {
             const ctx = canvas.getContext('2d');
             const draw = () => {
                 if (!document.body.contains(canvas)) {
-                    delete this.widgets[id];
                     return;
                 }
                 requestAnimationFrame(draw);
                 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (naryUI.selectedId === id) {
+                    ctx.strokeStyle = '#FFEB3B';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(0.5, 0.5, canvas.width - 1, canvas.height - 1);
+                }
+                else {
+                    ctx.strokeStyle = '#555';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+                }
                 
-                // MODIFICAT: Cada capçal utilitza la seva pròpia durada independent per moure's
+                //Cada capçal utilitza la seva pròpia durada independent per moure's
                 const currentDuration = this.durations[id] || 5;
                 const progress = (Tone.Transport.seconds % currentDuration) / currentDuration;
                 const headX = progress * canvas.width;
 
-                if (this.isEraseActive) {
-                    this.events[id] = this.events[id].filter(ev => Math.abs(ev - progress) > 0.03);
+                // Fa que errase ('e') nomes funcioni sobre la barra que toca 
+                if (
+                    this.isEraseActive &&
+                    this.eraseId === id
+                ) {
+                    this.events[id] = this.events[id].filter(
+                        ev => Math.abs(ev - progress) > 0.03
+                    );
+
                     ctx.fillStyle = 'rgba(244, 67, 54, 0.4)';
                     ctx.fillRect(headX - 6, 0, 12, canvas.height);
                 }
@@ -345,12 +406,17 @@ atmosfera2 > source ah_E3 loop 6
                     });
                 }
 
-                // Dibuixar capçal grog
-                ctx.strokeStyle = this.isEraseActive ? '#f44336' : '#FFEB3B';
+                //linea vermella si esta en mode "d" i blanca sino
+                ctx.strokeStyle =
+                    (this.isEraseActive && this.eraseId === id)
+                        ? '#f44336'
+                        : '#FFEB3B';
                 ctx.lineWidth = 3;
                 ctx.beginPath(); ctx.moveTo(headX, 0); ctx.lineTo(headX, canvas.height); ctx.stroke();
             };
             draw();
+
+
         }
     };
 
@@ -359,43 +425,66 @@ atmosfera2 > source ah_E3 loop 6
     const naryInput = {
         init: function() {
             document.addEventListener('keydown', e => {
-                // Si la tecla s'està mantenint premuda, ignorem el pols natiu del SO
+                // Si la tecla s'està mantenint premuda, ignorar, et quedes només amb el 1er click
                 if (e.repeat) return;
 
                 const key = e.key.toLowerCase();
-                if (key !== 'x' && key !== 'o') return;
 
-                // NOU I SEGUR: Calculem la ID activa NOMÉS en el moment exacte de clicar
-                const cursorLine = editor.getCursor().line;
-                let activeId = null;
+               if (
+                    (e.key === 'Delete' || e.key === 'Backspace') &&
+                    naryUI.selectedId
+                ) {
+                    naryUI.events[naryUI.selectedId] = [];
 
-                // Busquem cap enrere des de la línia actual per trobar el capçal '>'
-                for (let i = cursorLine; i >= 0; i--) {
-                    const lineText = editor.getLine(i);
-                    if (lineText && lineText.includes('>')) {
-                        activeId = lineText.split('>')[0].trim();
-                        break;
-                    }
+                    logElement.innerText =
+                        `CLEARED: ${naryUI.selectedId}`;
+
+                    e.preventDefault();
+                    return;
                 }
+                
+                if (key !== 'w' && 
+                    key !== 'p' && 
+                    key !== 'e'
+                ) return;
 
-                if (!activeId || !naryUI.events[activeId]) return;
+                const activeId = naryUI.selectedId;
+
+                if (!activeId) return;
+
+                if (!naryUI.events[activeId]) return;
+             
 
                 // CAMBIAT: Calculem el progrés usant la durada específica d'aquesta ID de línia
                 const currentDuration = naryUI.durations[activeId] || 5; // <-- NOU
                 const progress = (Tone.Transport.seconds % currentDuration) / currentDuration; // <-- CAMBIAT
 
-                if (key === 'x') {
+                if (key === 'w') {
                     naryUI.events[activeId].push(progress);
                 }
-                
-                if (key === 'o') {
+
+                if (key === 'p') {
+                    const params = nary.fluxParams[activeId];
+                    if (params) {
+                        nary.triggerFlux(
+                            activeId,
+                            params,
+                            Tone.now(),
+                            true
+                        );
+                    }
+                }
+
+                if (key === 'e') {
                     naryUI.isEraseActive = true;
+                    naryUI.eraseId = activeId;
                 }
             });
 
             document.addEventListener('keyup', e => {
-                if (e.key.toLowerCase() === 'o') {
+                if (e.key.toLowerCase() === 'e') {
                     naryUI.isEraseActive = false;
+                    naryUI.eraseId = null;
                 }
             });
         }
@@ -411,6 +500,12 @@ naryInput.init();
         theme: "monokai"
     });
 
+    // Quan cliquem dins del codi, sortim del mode patró
+    editor.on('mousedown', () => {
+        naryUI.selectedId = null;
+        logElement.innerText = "TEXT MODE";
+    });
+
     
     // 6. EXECUCIÓ (Amb el reset de volum corregit)
     async function execute() {
@@ -422,7 +517,8 @@ naryInput.init();
         window.repo = "";
         
         await Tone.start();
-        stop(); 
+
+        reload(); //no fem stop sino reload perque no pari el rellotge intern
         
         Tone.getDestination().volume.value = 0; 
         
@@ -463,8 +559,11 @@ naryInput.init();
                 }            
 
             if (line.includes('>')) {
-                if (currentId) nary.createFlux(currentId, params);
-                
+                if (currentId) {
+                    nary.fluxParams[currentId] = {...params};
+                    nary.createFlux(currentId, params);
+                }
+
                 const parts = line.split('>');
                 currentId = parts[0].trim();
                 params = {}; 
@@ -496,7 +595,14 @@ naryInput.init();
             }
         });
 
-        if (currentId) nary.createFlux(currentId, params);
+        if (currentId) {
+            nary.fluxParams[currentId] = {...params};
+            nary.createFlux(currentId, params);
+        }
+
+        if (Tone.Transport.state === "stopped") {
+            Tone.Transport.start();
+        }
         
         logElement.innerText = "RUNNING: " + Object.keys(activeLoops).join(", ");
     }
@@ -533,6 +639,21 @@ naryInput.init();
             naryUI.widgets = {};
             naryUI.events = {};
         }
+    }
+
+    //7. RELOAD: Esborra els loops i els esdeveniments pero no para el rellotge (per quan refas ctrl+enter)
+    function reload() {
+        console.log("Comandament RELOAD rebut");
+        // eliminem esdeveniments programats
+        Tone.Transport.cancel();
+        // eliminem loops antics
+        if (window.activeLoops) {
+            Object.values(activeLoops).forEach(loop => {
+                loop.stop();
+                loop.dispose();
+            });
+        }
+        window.activeLoops = {};
     }
 
     // Per si fas clic fora de l'editor, que els shortcuts funcionin igual
