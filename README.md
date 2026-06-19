@@ -18,6 +18,7 @@ Each track is defined as follows:
 > *track_name* `> source` *sample_name* `loop` *loop_duration (sec)*
 
 When executing, a **loop bar** appears.
+
 In this bar, there is a yellow **timeline**.
 
 
