@@ -59,6 +59,9 @@ import ah_E3 "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/ah/ah_E
 
 # Effects:
 
+## len
+Defines the maximum length of the sample, in seconds (if longer, cuts it).
+
 
 
 
