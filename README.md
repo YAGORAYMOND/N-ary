@@ -1,4 +1,15 @@
 
+
+# N-ary | An environment for playable sounds
+
+**N-ARY** is a web-based live coding environment for harmonic granular synthesis. It allows users to generate organic sound textures, sonic clouds, and microtonal atmospheres using a minimalist and intuitive programming language.
+
+Inspired by boutique pedals like the *Hologram Microcosm*, this engine focuses on "controlled imperfection" and harmonic richness.
+
+--------------------------------------------
+
+
+
 # Import samples:
 **Way 1**: Multiple samples from a same repo:
 ```ruby
@@ -12,6 +23,7 @@ import fatbass_1 "https://raw.githubusercontent.com/YAGORAYMOND/samples/refs/hea
 import ah_E3 "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/ah/ah_E3.wav"
 ```
 
+# Getting started:
 
 
 
@@ -22,15 +34,7 @@ import ah_E3 "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/ah/ah_E
 
 
 
---------------------------------------------
 
-# 〰️ N-ary | A granular synthesis live coding envirnoment
-
-**N-ARY** is a web-based live coding environment for harmonic granular synthesis. It allows users to generate organic sound textures, sonic clouds, and microtonal atmospheres using a minimalist and intuitive programming language.
-
-Inspired by boutique pedals like the *Hologram Microcosm*, this engine focuses on "controlled imperfection" and harmonic richness.
-
----
 
 ## 🔊 Getting Started
 
