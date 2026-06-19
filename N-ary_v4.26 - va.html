@@ -140,7 +140,7 @@ ritme > source fatbass_1
 
 <textarea id="code-editor">
 
-//imports
+//Imports
 repo "https://raw.githubusercontent.com/YAGORAYMOND/samples/main"
 import fatbass_1 "perc/fatbass/fatbass_1.wav"
 import guitar "instruments/guitar_C_rec.wav"
@@ -148,13 +148,14 @@ import guitar "instruments/guitar_C_rec.wav"
 drums > source fatbass_1 loop 4
 guit1 > source guitar loop 2 
 
-// EXECUTE (Ctrl+Enter)
-// STOP (Ctrl+.)
+// EXECUTE: Ctrl + Enter
+// STOP: Ctrl + .
 
-// w = write
-// p = play
-// e = erase
-// Del = clear
+// Click on the loop bar, then:
+//  w = write
+//  p = play
+//  e = erase
+//  Del = clear
 
 </textarea>
 
@@ -216,12 +217,15 @@ guit1 > source guitar loop 2
                             const detune = (Math.random() * 0.1 - 0.05) * shimmer;
                             player.playbackRate = (Math.pow(2, p / 12) * h) + detune;
                             
-                            let g = params.grain ? parseFloat(params.grain) : 500;
+                            let g = params.len 
+                                ? parseFloat(params.len) : 0.5;
                             // La nota base es fa més llarga amb més scatter per donar context
-                            if (i === 0 && scatter > 0) g *= (1 + scatter); 
-                            if (i > 0) g *= (0.4 + Math.random() * 0.4); 
+                            if (i === 0 && scatter > 0) 
+                                g *= (1 + scatter); 
+                            if (i > 0) 
+                                g *= (0.4 + Math.random() * 0.4); 
                             
-                            const duration = g / 1000;
+                            const duration = g;
                             const panner = new Tone.Panner(0).connect(envelope);
                             player.connect(panner);
 
