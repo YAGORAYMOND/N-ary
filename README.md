@@ -31,11 +31,16 @@ Click on the loop bar to selet it, then use:
   - `e` — Erase event
   - `delete` — Clear all events
 
+Next, let's load some samples.
 
+# Loading samples
+There are two ways to use samples:
 
+## Preloaded samples:
+Use any of the samples already included in the project:
+` TO BE DONE`
 
-# Samples:
-## Import samples:
+## Import your own samples:
 **Way 1**: Multiple samples from a same repo:
 ```ruby
 repo "https://raw.githubusercontent.com/YAGORAYMOND/samples/main"
@@ -48,8 +53,7 @@ import fatbass_1 "https://raw.githubusercontent.com/YAGORAYMOND/samples/refs/hea
 import ah_E3 "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/ah/ah_E3.wav"
 ```
 
-## Default samples:
-TBD
+
 
 # Sample controls:
 
