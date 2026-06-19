@@ -7,6 +7,19 @@ N-ary is a web-based environment where sounds are organized into playable struct
 --------------------------------------------
 # Getting started:
 
+## Installation/start/stop
+1. Download the `N-ary.html` file.
+2. Open it in any web browser.
+4. Press **`Ctrl + Enter`** to execute.
+5. Press **`Ctrl + .`** to stop.
+
+## Basic structure
+Each track is defined as follows:
+> *track_name* `> source` *sample_name* `loop` *loop_duration (sec)*
+When executing, a **loop bar** appears.
+In this bar, there is a yellow **timeline**
+
+
 
 
 ## 
