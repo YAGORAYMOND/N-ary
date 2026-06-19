@@ -17,15 +17,19 @@ N-ary is a web-based environment where sounds are organized into playable struct
 Each track is defined as follows:
 > *track_name* `> source` *sample_name* `loop` *loop_duration (sec)*
 
-When executing, a **loop bar** appears.
+Example:
 
-In this loop bar, there is a yellow **timeline**.
+<img width="272" height="46" alt="image" src="https://github.com/user-attachments/assets/a19e32cb-6661-4011-b621-ff6b6c7fec18" />
 
-Click on the loop bar to selet it (yellow square), then use the following commands to trigger samples on the time loop:
-  - `p`   Play once
-  - `w`   Write
-  - `e`   Erase
-  - `del` Delete  
+When executing, a **loop bar** appears for each track.
+
+The moving yellow line shows the current position in the loop.
+
+Click on the loop bar to selet it, then use:
+  - `p` — Play the sample once
+  - `w` — Write an event on the current position
+  - `e` — Erase event
+  - `delete` — Clear all events
 
 
 
