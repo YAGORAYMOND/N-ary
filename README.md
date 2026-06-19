@@ -19,9 +19,13 @@ Each track is defined as follows:
 
 When executing, a **loop bar** appears.
 
-In this bar, there is a yellow **timeline**.
+In this loop bar, there is a yellow **timeline**.
 
-
+Click on the loop bar to selet it (yellow square), then use the following commands to trigger samples on the time loop:
+  - `p`   Play once
+  - `w`   Write
+  - `e`   Erase
+  - `del` Delete  
 
 
 
