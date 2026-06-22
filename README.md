@@ -38,7 +38,11 @@ There are two ways to use samples:
 
 ## Preloaded samples:
 Use any of the samples already included in the project:
-` TO BE DONE`
+| Fammily | Name of the sample |
+| --- | :--- |
+| Percussion | `bassdrum`, `kick`, `snare`, `hat`, `clap` |
+| Instruments | `guitar`, `violin`, `piano`, `choir` |
+| Textures | `pink`, `crackle`, `conversation` |
 
 ## Import your own samples:
 **Way 1**: Multiple samples from a same repo:
