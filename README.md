@@ -40,9 +40,10 @@ There are two ways to use samples:
 Use any of the samples already included in the project:
 | Fammily | Name of the sample |
 | --- | :--- |
-| Percussion | `bassdrum`, `kick`, `snare`, `hat`, `clap` |
+| Percussion* | `bassdrum`, `kick`, `snare`, `hat`, `clap` |
 | Instruments | `guitar`, `violin`, `piano`, `choir` |
 | Textures | `pink`, `crackle`, `conversation` |
+ **These drum samples were sourced from 99Sounds: https://99sounds.org/*
 
 ## Import your own samples:
 **Way 1**: Multiple samples from a same repo:
@@ -116,7 +117,7 @@ cloud_name > source triangle
 | **reverb** | Spatial depth and filter darkness. | `0` (dry) to `1.0` (infinite) |
 | **activity** | Probability of a grain being triggered. | `0` to `1.0` |
 
- 
+
 ## 🤓⌨️ Examples
 1. Atmospheric Cloud (Ambient Pad)
   A soft, deep texture that evolves slowly.
