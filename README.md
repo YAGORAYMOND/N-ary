@@ -43,6 +43,7 @@ Use any of the samples already included in the project:
 | Percussion* | `bassdrum`, `kick`, `snare`, `hat`, `clap` |
 | Instruments | `guitar`, `violin`, `piano`, `choir` |
 | Textures | `pink`, `crackle`, `conversation` |
+
  **These drum samples were sourced from 99Sounds: https://99sounds.org/*
 
 ## Import your own samples:
