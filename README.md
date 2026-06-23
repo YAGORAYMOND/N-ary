@@ -40,11 +40,11 @@ There are two ways to use samples:
 Use any of the samples already included in the project:
 | Fammily | Name of the sample |
 | --- | :--- |
-| Percussion* | `bassdrum`, `kick`, `snare`, `hat`, `clap` |
+| Percussion<sup>1</sup> | `bassdrum`, `kick`, `snare`, `hat`, `clap` |
 | Instruments | `guitar`, `violin`, `piano`, `choir` |
 | Textures | `pink`, `crackle`, `conversation` |
 
- **These drum samples were sourced from 99Sounds: https://99sounds.org/*
+ *<sup>1</sup>These drum samples were sourced from 99Sounds: https://99sounds.org/*
 
 ## Import your own samples:
 **Way 1**: Multiple samples from a same repo:
