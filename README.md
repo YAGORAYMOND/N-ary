@@ -62,10 +62,10 @@ import ah_E3 "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/ah/ah_E
 
 # Sample controls
 # Sample tuning?? (buscar millor nom)
-## len
-Sets the duration of each event in seconds.
+## Sample Lenght
+`len` — Sets the duration of each event in seconds.
 ```
-voice > source ah_E3
+voice > source uhhh
   len 0.5
 ```
 
@@ -94,6 +94,17 @@ voice > source choir loop 10
 
 # Local Effects
 Effects individuallyl applied to each track.
+
+## Low-pass Filter
+`lpf` — Low-pass filter cutoff frequency in Hz. By default no filter is applied.
+
+```
+guitar > source guitar loop 2
+guitar_lpf > source guitar loop 2 
+ lpf 200
+```
+
+
 ## Delay
 
 
