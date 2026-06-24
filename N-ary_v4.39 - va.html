@@ -172,19 +172,27 @@ guit1 > source guitar loop 2
         "kick4": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/kick-classic.wav",     
         "kick5":  "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/fatbass/fatbass_1.wav",
         "kick6": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/kick-deep.wav",
-        
-        
-        "snare": "TBD",
-        "hat": "TBD",
-        "clap": "TBD",
-        "shaker": "",
+        "snare": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/snare-808.wav",
+        "snare2": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/snare-electro.wav",
+        "snare3": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/snare-tape.wav",
+        "snare4": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/snare-noise.wav",
+        "hat": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/hihat-808.wav",
+        "hat2": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/hihat-acoustic02.wav",
+        "clap": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/clap-tape.wav",
+        "shaker": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/shaker-analog.wav",
+        "shaker2": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/shaker-suckup.wav",
 
         //instruments
         "guitar": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/instruments/guitar_C_rec.wav",
         "violin": "TBD",
         "piano": "TBD",
+
+        //vocals
         "choir": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/aachen/choir4.mp3",
-        //uhhh_C:'vocals/uhhh/uhhh_C_choir.wav' 
+        "uhhh": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/vocals/uhhh/uhhh_C_choir.wav",
+
+        //synths
+        //TBD (ojo gravar monolog/serum)
 
         //textures
         "pink": "TBD",
@@ -195,25 +203,44 @@ guit1 > source guitar loop 2
     
         //pads
         "field_c": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/field/field_c_2.wav",
-        "city": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/pad/sichuan_ambience_pad_C.wav",
+        "city_c": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/pad/sichuan_ambience_pad_C.wav",
     
     }
 
-    window.repo = ""; 
+    window.repo = "";
+    //EFECTES
+    window.fx = {
+        decay: 4, // Segons de cua
+        predelay: 0 //delay entre senyal i reverb
+        //en un futur implementar damp (brillantor) del reverb pels mircoloops
+    };
+
     const logElement = document.getElementById('log');
     window.activeLoops = {}; 
+    window.activePlayers = [];
     //per controlar el widget de la barra:
     let currentLoopWidget = null; // Guarda el widget visual de CodeMirror
     let targetLoopDuration = 0;   // Durada en segons
     let loopEvents = [];          // Esdeveniments (valors entre 0 i 1)
     let isPressingErase = false;  // Estat de la tecla 'o'
 
-    // CREEM LA REVERB GLOBAL (Una sola vegada)
-    const globalReverb = new Tone.Reverb({
-        decay: 4,       // Segons de cua
-        wet: 0.0        // Quantitat de barreja (50%)
-    }).toDestination();
-    globalReverb.generate(); // Prepara l'efecte
+    // CREEM LA REVERB GLOBAL (bus)
+    window.buses = {};
+    window.buses.reverbDelay =
+        new Tone.Delay(
+            window.fx.predelay
+        );
+    window.buses.reverb =
+        new Tone.Reverb({
+            decay: window.fx.decay,
+            wet: 1
+        });
+    window.buses.reverbDelay.connect(
+        window.buses.reverb
+    );
+    //connectar: predelay>reverb(que te opció decay)
+    window.buses.reverb.toDestination();
+    window.buses.reverb.generate();
 
     // 2. EL MOTOR (Nary Engine)
     const nary = {
@@ -239,7 +266,7 @@ guit1 > source guitar loop 2
                 )
                     return;
 
-                const revValue = params.reverb ? parseFloat(params.reverb) : 0.5;
+                    const revValue = parseFloat(params.reverb || 0); //buscar valor de wet/dry reverb (defecte 0)             
                 
                 harmonics.forEach((h, i) => {
                     // La probabilitat de veus extra depèn del shimmer i el scatter
@@ -249,8 +276,25 @@ guit1 > source guitar loop 2
                     const delay = i === 0 ? 0 : Math.random() * (scatter * 0.3);
                     const sampleTime = time + delay;
 
-                    const fFreq = i === 0 ? 8000 : (1 - revValue) * 4000 + 200;
-                    const filter = new Tone.Filter(fFreq, "lowpass").connect(globalReverb);
+                    //lpf
+                    const fFreq =
+                        params.lpf
+                            ? parseFloat(params.lpf)
+                            : 22050;
+                    const filter =
+                        new Tone.Filter(
+                            fFreq,
+                            "lowpass"
+                        );
+                    filter.toDestination();
+
+                    //reverb
+                    const reverbSend =
+                        new Tone.Gain(revValue);
+                    filter.connect(reverbSend);
+                    reverbSend.connect(
+                        window.buses.reverbDelay
+                    );
 
                     const envelope = new Tone.Gain(0).connect(filter);
                     const player = new Tone.Player({
@@ -270,10 +314,13 @@ guit1 > source guitar loop 2
 
                             const vol = i === 0 ? 1.3 : (0.7 / i) * (shimmer + scatter);
                             
-                            //Envelope
+                            //Envelope (ha donat molts problemes de clicks als samples, despres d'investigar així es robust)
                             if (duration !== null) {
                                 envelope.gain.setValueAtTime(0, sampleTime);
-                                envelope.gain.linearRampToValueAtTime(vol, sampleTime + 0.03);
+                                envelope.gain.linearRampToValueAtTime(
+                                    vol,
+                                    sampleTime + 0.03
+                                );
                                 envelope.gain.setValueAtTime(
                                     vol,
                                     sampleTime + duration - 0.03
@@ -283,8 +330,11 @@ guit1 > source guitar loop 2
                                     sampleTime + duration
                                 );
                             } else {
-                                envelope.gain.value = vol;
-                            };
+                                envelope.gain.setValueAtTime(
+                                    vol,
+                                    sampleTime
+                                );
+                            }
 
                             player.start(sampleTime);
 
@@ -298,13 +348,19 @@ guit1 > source guitar loop 2
                                     : player.buffer.duration + 2;
 
                             setTimeout(() => {
+                                const index =
+                                    window.activePlayers.indexOf(player);
+                                if (index !== -1)
+                                    window.activePlayers.splice(index, 1);
                                 player.dispose();
                                 panner.dispose();
                                 envelope.dispose();
                                 filter.dispose();
+                                reverbSend.dispose();
                             }, cleanupTime * 1000);                            
                         }
                     });
+                    window.activePlayers.push(player);
                 });
             },
         createFlux: (id, params) => {
@@ -596,9 +652,29 @@ naryInput.init();
         let params = {};
 
         lines.forEach(line => {
+
             //commentar amb //
             const trimmed = line.trim();
-            if (!trimmed || trimmed.startsWith('//')) return;
+            if (!trimmed || trimmed.startsWith('//')) 
+                return;
+
+            //Reconeixer variables globals (room i decay del reverb)
+            const globalMatch =
+                trimmed.match(/^(\w+)\s+([0-9.]+)$/);
+            if (
+                globalMatch &&
+                !line.includes('>') &&
+                !line.startsWith(' ') &&
+                !line.startsWith('\t')
+            ) {
+                const key = globalMatch[1];
+                const value = parseFloat(globalMatch[2]);
+                if (key === "decay")
+                    window.fx.decay = value;
+                if (key === "predelay")
+                    window.fx.predelay = Math.max(0, Math.min(value, 300));
+                return;
+            }
 
             //importar samples 
             const repoMatch = trimmed.match(
@@ -608,7 +684,6 @@ naryInput.init();
                 window.repo = repoMatch[1];
                 return;
             }
-
             const importMatch = trimmed.match(
                 /^import\s+(\S+)\s+"([^"]+)"$/
             );
@@ -667,6 +742,29 @@ naryInput.init();
             nary.createFlux(currentId, params);
         }
 
+        //a cada ctrl+enter revisa si valor de reverb ha canviat
+        if (window.buses.reverbDelay)
+            window.buses.reverbDelay.dispose();
+
+        if (window.buses.reverb)
+            window.buses.reverb.dispose();
+
+        window.buses.reverbDelay =
+            new Tone.Delay(
+                window.fx.predelay /1000 //passar de ms a s
+            );
+        window.buses.reverb =
+            new Tone.Reverb({
+                decay: window.fx.decay,
+                wet: 1
+            });
+        window.buses.reverbDelay.connect(
+            window.buses.reverb
+        );
+        //connectar: predelay>reverb(que te opció decay)
+        window.buses.reverb.toDestination();
+        window.buses.reverb.generate();
+
         if (Tone.Transport.state === "stopped") {
             Tone.Transport.start();
         }
@@ -693,6 +791,15 @@ naryInput.init();
                 loop.dispose();
             });
         }
+
+        window.activePlayers.forEach(player => {
+            try {
+                player.stop();
+                player.dispose();
+            } catch {}
+        });
+        window.activePlayers = [];
+
         window.activeLoops = {}; // Reiniciem el magatzem de bucles
 
         // NETEJA DE LES BARRES INTERACTIVES (NaryUI)
@@ -720,6 +827,13 @@ naryInput.init();
                 loop.dispose();
             });
         }
+        window.activePlayers.forEach(player => {
+            try {
+                player.stop();
+                player.dispose();
+            } catch {}
+        });
+        window.activePlayers = [];
         window.activeLoops = {};
     }
 
