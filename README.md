@@ -47,6 +47,7 @@ Use any of the samples already included in the project:
 | Pads | `field_c`, `city_c` |
 
  *<sup>1</sup>These drum samples were sourced from 99Sounds: https://99sounds.org/*
+ 
  **The first variant has no number suffix (e.g. `kick`, `kick2`, `kick3`, ...).*
 
 ## Import your own samples
