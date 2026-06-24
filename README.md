@@ -48,7 +48,7 @@ Use any of the samples already included in the project:
 
  *<sup>1</sup>These drum samples were sourced from 99Sounds: https://99sounds.org/*
  
- **The first variant has no number suffix (e.g. `kick`, `kick2`, `kick3`, ...).*
+ **(xN) indicates that there are N variants of this sample. The first variant has no number suffix (e.g. `kick`, `kick2`, `kick3`, ...).*
 
 ## Import your own samples
 **Way 1**: Multiple samples from a same repo:
