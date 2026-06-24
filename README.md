@@ -1,10 +1,9 @@
 
 
 # N-ary/Ordit/Ordal | An environment for playable sounds
-
 N-ary is a web-based environment where sounds are organized into playable structures and performed in real time using a minimal language.
 
---------------------------------------------
+
 # Getting started:
 
 ## Installation/start/stop
