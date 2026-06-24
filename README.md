@@ -72,7 +72,20 @@ voice > source ah_E3
 # Effects
 Efects work in buses, this means every time you...
 ## Reverb
+There is a single space (bus) for all the samples.
+This space has the parameters:
+  - `room`: ... (default=##)
+  - `decay`: ... (default=##) 
 
+Additionally, on each track you specify the amount of reverb that each track recieves (dry/wet) with the argument `reverb` (default=0).
+
+```
+room 0.8
+decay 4
+
+drums > source kick reverb 0
+voice > source choir reverb 0.8
+```
 
 
 
