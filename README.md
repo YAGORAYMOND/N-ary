@@ -39,11 +39,15 @@ There are two ways to use samples:
 Use any of the samples already included in the project:
 | Fammily | Name of the sample |
 | --- | :--- |
-| Percussion<sup>1</sup> | `bassdrum`, `kick`, `snare`, `hat`, `clap` |
-| Instruments | `guitar`, `violin`, `piano`, `choir` |
-| Textures | `pink`, `crackle`, `conversation` |
+| Percussion<sup>1</sup> | `kick`(x5), `snare`(x4), `hat`(x2), `clap`, `shaker`(x2) |
+| Instruments | `guitar`, `violin`, `piano`|
+| Vocals | `choir`, `uhhh` |
+| Synths  | TBD |
+| Textures | `pink`, `vinyl`, `rain`, `conversation`, `birds`|
+| Pads | `field_c`, `city_c` |
 
  *<sup>1</sup>These drum samples were sourced from 99Sounds: https://99sounds.org/*
+ **The first variant has no number suffix (e.g. `kick`, `kick2`, `kick3`, ...).*
 
 ## Import your own samples
 **Way 1**: Multiple samples from a same repo:
