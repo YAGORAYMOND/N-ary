@@ -36,7 +36,7 @@ Next, let's load some samples.
 # Loading samples
 There are two ways to use samples:
 
-## Preloaded samples:
+## Preloaded samples
 Use any of the samples already included in the project:
 | Fammily | Name of the sample |
 | --- | :--- |
@@ -46,7 +46,7 @@ Use any of the samples already included in the project:
 
  *<sup>1</sup>These drum samples were sourced from 99Sounds: https://99sounds.org/*
 
-## Import your own samples:
+## Import your own samples
 **Way 1**: Multiple samples from a same repo:
 ```ruby
 repo "https://raw.githubusercontent.com/YAGORAYMOND/samples/main"
@@ -61,10 +61,8 @@ import ah_E3 "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/ah/ah_E
 
 
 
-# Sample controls:
-
-# Effects:
-
+# Sample controls
+# Sample tuning?? (buscar millor nom)
 ## len
 Sets the duration of each event in seconds.
 ```
@@ -72,6 +70,9 @@ voice > source ah_E3
   len 0.5
 ```
 
+# Effects
+Efects work in buses, this means every time you...
+## Reverb
 
 
 
