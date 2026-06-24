@@ -85,8 +85,11 @@ Track parameter:
 decay 10
 predelay 300
 
-drums > source kick reverb 0.4
-voice > source choir reverb 0.8
+drums > source kick loop 2
+ reverb 0.4
+voice > source choir loop 10
+ len 2
+ reverb 0.8
 ```
 
 # Local Effects
