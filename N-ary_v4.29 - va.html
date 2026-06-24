@@ -65,6 +65,9 @@ FALLOS:
 [ ] implementar el tema dels patterns amb tecla sobre la zona
   ===========================================================
 
+FUTURA IMPLEMENTACIÓ GRANULATOR:
+    shimmer (passar a harmonizer) → crea harmonics (density, spread)
+    scatter (passar a granulator)→ agafa samples en deifernts temps d'inici (?parametres?)
 
 
 atmosfera > source ah_E3
@@ -140,20 +143,15 @@ ritme > source fatbass_1
 
 <textarea id="code-editor">
 
-//Imports
-repo "https://raw.githubusercontent.com/YAGORAYMOND/samples/main"
-import fatbass_1 "perc/fatbass/fatbass_1.wav"
-import guitar "instruments/guitar_C_rec.wav"
-
-drums > source fatbass_1 loop 4
+drums > source kick loop 4
 guit1 > source guitar loop 2 
 
 // EXECUTE: Ctrl + Enter
 // STOP: Ctrl + .
 
 // Click on the loop bar, then:
-//  w = write
 //  p = play
+//  w = write
 //  e = erase
 //  Del = clear
 
@@ -164,6 +162,43 @@ guit1 > source guitar loop 2
 <script>
 // 1. VARIABLES GLOBALS
     window.samples = {};
+    // Samples que venen de base.
+    window.preloadSamples = {
+
+        //percusió
+        "kick": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/kick-electro01.wav",
+        "kick2": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/kick-tape.wav",
+        "kick3": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/kick-vinyl01.wav",
+        "kick4": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/kick-classic.wav",     
+        "kick5":  "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/fatbass/fatbass_1.wav",
+        "kick6": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/kick-deep.wav",
+        
+        
+        "snare": "TBD",
+        "hat": "TBD",
+        "clap": "TBD",
+        "shaker": "",
+
+        //instruments
+        "guitar": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/instruments/guitar_C_rec.wav",
+        "violin": "TBD",
+        "piano": "TBD",
+        "choir": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/aachen/choir4.mp3",
+        //uhhh_C:'vocals/uhhh/uhhh_C_choir.wav' 
+
+        //textures
+        "pink": "TBD",
+        "vinyl": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/noise/vinyl1.wav",
+        "rain": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/noise/rain_crackle.wav",
+        "conversations": "TBD",
+        "birds": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/nature/birds1.mp3",
+    
+        //pads
+        "field_c": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/field/field_c_2.wav",
+        "city": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/pad/sichuan_ambience_pad_C.wav",
+    
+    }
+
     window.repo = ""; 
     const logElement = document.getElementById('log');
     window.activeLoops = {}; 
@@ -176,7 +211,7 @@ guit1 > source guitar loop 2
     // CREEM LA REVERB GLOBAL (Una sola vegada)
     const globalReverb = new Tone.Reverb({
         decay: 4,       // Segons de cua
-        wet: 0.5        // Quantitat de barreja (50%)
+        wet: 0.0        // Quantitat de barreja (50%)
     }).toDestination();
     globalReverb.generate(); // Prepara l'efecte
 
@@ -184,7 +219,16 @@ guit1 > source guitar loop 2
     const nary = {
         fluxParams: {},
         triggerFlux: (id, params, time, ignoreActivity = false) => {
-            const sourceName = params.source ? params.source.trim() : 'sine';
+
+            const sourceName = params.source?.trim();
+            if (!sourceName) {
+                console.warn(`Missing source in track "${trackName}"`);
+                return;
+            }
+            if (!window.samples[sourceName]) {
+                console.warn(`Sample "${sourceName}" not found`);
+                return;
+}
             const shimmer = params.shimmer ? parseFloat(params.shimmer) : 0;
             const scatter = params.scatter ? parseFloat(params.scatter) : 0;
             const harmonics = [1, 2, 1.5, 0.75, 4];
@@ -203,7 +247,7 @@ guit1 > source guitar loop 2
 
                     // L'essència del SCATTER: un desplaçament en el temps que no afecta la nota base (i=0)
                     const delay = i === 0 ? 0 : Math.random() * (scatter * 0.3);
-                    const grainTime = time + delay;
+                    const sampleTime = time + delay;
 
                     const fFreq = i === 0 ? 8000 : (1 - revValue) * 4000 + 200;
                     const filter = new Tone.Filter(fFreq, "lowpass").connect(globalReverb);
@@ -217,37 +261,54 @@ guit1 > source guitar loop 2
                             const detune = (Math.random() * 0.1 - 0.05) * shimmer;
                             player.playbackRate = (Math.pow(2, p / 12) * h) + detune;
                             
-                            let g = params.len 
-                                ? parseFloat(params.len) : 0.5;
-                            // La nota base es fa més llarga amb més scatter per donar context
-                            if (i === 0 && scatter > 0) 
-                                g *= (1 + scatter); 
-                            if (i > 0) 
-                                g *= (0.4 + Math.random() * 0.4); 
-                            
-                            const duration = g;
+                            const duration = params.len
+                                ? parseFloat(params.len)
+                                : null;
+
                             const panner = new Tone.Panner(0).connect(envelope);
                             player.connect(panner);
 
                             const vol = i === 0 ? 1.3 : (0.7 / i) * (shimmer + scatter);
                             
-                            envelope.gain.setValueAtTime(0, grainTime);
-                            envelope.gain.linearRampToValueAtTime(vol, grainTime + 0.03);
-                            envelope.gain.setValueAtTime(vol, grainTime + duration - 0.03);
-                            envelope.gain.linearRampToValueAtTime(0, grainTime + duration);
+                            //Envelope
+                            if (duration !== null) {
+                                envelope.gain.setValueAtTime(0, sampleTime);
+                                envelope.gain.linearRampToValueAtTime(vol, sampleTime + 0.03);
+                                envelope.gain.setValueAtTime(
+                                    vol,
+                                    sampleTime + duration - 0.03
+                                );
+                                envelope.gain.linearRampToValueAtTime(
+                                    0,
+                                    sampleTime + duration
+                                );
+                            } else {
+                                envelope.gain.value = vol;
+                            };
 
-                            player.start(grainTime);
-                            player.stop(grainTime + duration);
+                            player.start(sampleTime);
+
+                            if (duration !== null) {
+                                player.stop(sampleTime + duration);
+                            }
+
+                            const cleanupTime =
+                                duration !== null
+                                    ? duration + 2
+                                    : player.buffer.duration + 2;
 
                             setTimeout(() => {
-                                player.dispose(); panner.dispose(); envelope.dispose(); filter.dispose();
-                            }, (duration + 2) * 1000);
+                                player.dispose();
+                                panner.dispose();
+                                envelope.dispose();
+                                filter.dispose();
+                            }, cleanupTime * 1000);                            
                         }
                     });
                 });
             },
         createFlux: (id, params) => {
-            const sourceName = params.source ? params.source.trim() : 'sine';
+            const sourceName = params.source?.trim();
             if (!window.samples[sourceName]) return;
 
             Tone.getDestination().volume.value = 0; 
@@ -517,7 +578,9 @@ naryInput.init();
         logElement.innerText = "EXECUTING...";
         
         //netejar load samples (pq no es tornin a carregar)
-        window.samples = {};
+        window.samples = {
+            ...window.preloadSamples //afegim les samples per defecte
+        };
         window.repo = "";
         
         await Tone.start();
