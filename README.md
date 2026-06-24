@@ -69,25 +69,29 @@ voice > source ah_E3
   len 0.5
 ```
 
-# Effects
-Efects work in buses, this means every time you...
+# Global Effects
+Global effects use shared buses. This means that all tracks can send signal to the same effect instance.
 ## Reverb
-There is a single space (bus) for all the samples.
-This space has the parameters:
+All tracks share the same reverb space (bus).
 
-  - `decay`: ... (default=##)
-  - `predelay`: Delay between the dry sound and the beginning of the reverb in milliseconds. (default=0, range=0-300)
+Global parameters:
+  - `decay` — Length of the reverb tail in seconds. (default: `4`)
+  - `predelay` — Delay between the dry sound and the start of the reverb in milliseconds. (range=0-300, default=0)
 
-Additionally, on each track you specify the amount of reverb that each track recieves (dry/wet) with the argument `reverb` (default=0).
+Track parameter: 
+  - `reverb` — Amount of signal sent to the reverb bus (dry/wet). (range=0-1, default=0)
 
 ```
-room 0.8
-decay 4
+decay 10
+predelay 300
 
-drums > source kick reverb 0
+drums > source kick reverb 0.4
 voice > source choir reverb 0.8
 ```
 
+# Local Effects
+Effects individuallyl applied to each track.
+## Delay
 
 
 
