@@ -120,11 +120,11 @@ When multiple values are provided for a parameter, the loop is divided into equa
 
 Events inherit the value of the region in which they occur.
 
-    pitch 0 3 7 12
+> pitch 0 3 7 12
 
 creates 4 equal regions:
 
-    | 0 | 3 | 7 | 12 |
+> | 0 | 3 | 7 | 12 |
 
 The same applies to any parameter:
 
@@ -145,7 +145,7 @@ Rather than defining sequences of events, N-ary defines regions in time. Multipl
 
 
 
-
+--------------------------------------------------------------------------
 
 
 ## 🔊 Getting Started
