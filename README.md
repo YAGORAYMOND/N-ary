@@ -3,6 +3,25 @@
 # N-ary/Ordit/Ordal | An environment for playable sounds
 N-ary is a web-based environment where sounds are organized into playable structures and performed in real time using a minimal language.
 
+## Contents
+
+- [Getting Started](#getting-started)
+- [Loading Samples](#loading-samples)
+  - [Preloaded Samples](#preloaded-samples)
+  - [Import Your Own Samples](#import-your-own-samples)
+- [Sample Controls](#sample-controls)
+  - [Pitch](#pitch)
+  - [Pitch(n)](#pitchn-tbd)
+  - [Length](#length)
+- [Global Effects](#global-effects)
+  - [Reverb](#reverb)
+- [Local Effects](#local-effects)
+  - [Low-pass Filter](#low-pass-filter)
+  - [Delay](#delay)
+- [Sequencing](#sequencing)
+- [Credits](#credits)
+- [License](#license)
+
 
 # Getting started:
 
