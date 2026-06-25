@@ -69,6 +69,9 @@ FUTURA IMPLEMENTACIÓ GRANULATOR:
     shimmer (passar a harmonizer) → crea harmonics (density, spread)
     scatter (passar a granulator)→ agafa samples en deifernts temps d'inici (?parametres?)
 
+MES IDEES:
+    Dividir l'escala en tons, apart de "pitch" que hi hagi "pitch(5)" divideix la octava/escala en 5 (=pentatonica) etc.
+
 
 atmosfera > source ah_E3
   rate 2
@@ -245,8 +248,40 @@ guit1 > source guitar loop 2
     // 2. EL MOTOR (Nary Engine)
     const nary = {
         fluxParams: {},
-        triggerFlux: (id, params, time, ignoreActivity = false) => {
 
+        //sequenciador per posició en la barra
+        getRegionValue: (
+            value,
+            eventPosition = 0
+        ) => {
+            if (value === undefined)
+                return undefined;
+            const values =
+                value
+                    .toString()
+                    .trim()
+                    .split(/\s+/);
+            if (values.length === 1)
+                return values[0];
+            const region =
+                Math.min(
+                    Math.floor(
+                        eventPosition *
+                        values.length
+                    ),
+                    values.length - 1
+                );
+            return values[region];
+        },
+
+        
+        triggerFlux: (
+            id,
+            params,
+            time,
+            ignoreActivity = false,
+            eventPosition = 0 //per poder definir els parametres que li toquen al sample
+        ) => {
             const sourceName = params.source?.trim();
             if (!sourceName) {
                 console.warn(`Missing source in track "${trackName}"`);
@@ -259,14 +294,28 @@ guit1 > source guitar loop 2
             const shimmer = params.shimmer ? parseFloat(params.shimmer) : 0;
             const scatter = params.scatter ? parseFloat(params.scatter) : 0;
             const harmonics = [1, 2, 1.5, 0.75, 4];
-            const activity = params.activity ? parseFloat(params.activity) : 1;
+            const activity =
+                params.activity
+                    ? parseFloat(
+                        nary.getRegionValue(
+                            params.activity,
+                            eventPosition
+                        )
+                    )
+                    : 1;
                 if (
                     !ignoreActivity &&
                     Math.random() > activity
                 )
                     return;
 
-                    const revValue = parseFloat(params.reverb || 0); //buscar valor de wet/dry reverb (defecte 0)             
+                    const revValue =
+                        parseFloat(
+                            nary.getRegionValue(
+                                params.reverb,
+                                eventPosition //definit per posició
+                            ) || 0 // valor de wet/dry reverb (defecte 0)
+                        );   
                 
                 harmonics.forEach((h, i) => {
                     // La probabilitat de veus extra depèn del shimmer i el scatter
@@ -279,7 +328,12 @@ guit1 > source guitar loop 2
                     //lpf
                     const fFreq =
                         params.lpf
-                            ? parseFloat(params.lpf)
+                            ? parseFloat(
+                                nary.getRegionValue(
+                                    params.lpf,
+                                    eventPosition //en funció de la seva posició
+                                )
+                            )
                             : 22050;
                     const filter =
                         new Tone.Filter(
@@ -301,13 +355,28 @@ guit1 > source guitar loop 2
                         url: window.samples[sourceName],
                         autostart: false,
                         onload: () => {
-                            const p = parseFloat(params.pitch) || 0;
+
+                            //pitch
+                            const p =
+                                parseFloat(
+                                    nary.getRegionValue(
+                                        params.pitch,
+                                        eventPosition //posició event defineix pitch
+                                    )
+                                ) || 0;
                             const detune = (Math.random() * 0.1 - 0.05) * shimmer;
                             player.playbackRate = (Math.pow(2, p / 12) * h) + detune;
                             
-                            const duration = params.len
-                                ? parseFloat(params.len)
-                                : null;
+                            //len
+                            const duration =
+                                params.len
+                                    ? parseFloat(
+                                        nary.getRegionValue(
+                                            params.len,
+                                            eventPosition //posicio del event defineix len
+                                        )
+                                    )
+                                    : null;
 
                             const panner = new Tone.Panner(0).connect(envelope);
                             player.connect(panner);
@@ -415,7 +484,9 @@ guit1 > source guitar loop 2
                             nary.triggerFlux(
                                 id,
                                 params,
-                                time
+                                time,
+                                false,
+                                evPos
                             );
                         }
                     }
@@ -583,15 +654,17 @@ guit1 > source guitar loop 2
                 if (key === 'w') {
                     naryUI.events[activeId].push(progress);
                 }
-
+                
                 if (key === 'p') {
-                    const params = nary.fluxParams[activeId];
+                    const params =
+                        nary.fluxParams[activeId];
                     if (params) {
                         nary.triggerFlux(
                             activeId,
                             params,
                             Tone.now(),
-                            true
+                            true,
+                            progress //pq soni exactament amb parametres que toca
                         );
                     }
                 }
@@ -726,13 +799,13 @@ naryInput.init();
             } 
             else if (currentId && (line.startsWith(' ') || line.startsWith('\t'))) {
                 const p = trimmed.split(/\s+/);
-                if (p[0] && p[1]) {
-                    params[p[0]] = p[1];
-                    
-                    // NOU: Si el 'loop X' s'ha definit a sota indentat, també l'enxampem i el guardem
-                    if (p[0] === 'loop') { // <-- NOU
-                        naryUI.durations[currentId] = parseFloat(p[1]); // <-- NOU
-                    } // <-- NOU
+                if (p[0] && p.length > 1) {
+                    params[p[0]] =
+                        p.slice(1).join(' ');
+                    if (p[0] === 'loop') {
+                        naryUI.durations[currentId] =
+                            parseFloat(p[1]);
+                    }
                 }
             }
         });
@@ -777,9 +850,6 @@ naryInput.init();
         console.log("Comandament STOP rebut");
         logElement.innerText = "STOPPED";
 
-        // Rebaixem el volum mestre a -Infinity per evitar clics estranys
-        Tone.getDestination().volume.value = -Infinity;
-
         // Aturem el transport de Tone.js
         Tone.Transport.stop();
         Tone.Transport.cancel();
@@ -792,13 +862,6 @@ naryInput.init();
             });
         }
 
-        window.activePlayers.forEach(player => {
-            try {
-                player.stop();
-                player.dispose();
-            } catch {}
-        });
-        window.activePlayers = [];
 
         window.activeLoops = {}; // Reiniciem el magatzem de bucles
 
@@ -827,13 +890,13 @@ naryInput.init();
                 loop.dispose();
             });
         }
-        window.activePlayers.forEach(player => {
-            try {
-                player.stop();
-                player.dispose();
-            } catch {}
-        });
-        window.activePlayers = [];
+        // window.activePlayers.forEach(player => {
+        //     try {
+        //         player.stop();
+        //         player.dispose();
+        //     } catch {}
+        // });
+        // window.activePlayers = [];
         window.activeLoops = {};
     }
 
