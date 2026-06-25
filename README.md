@@ -67,6 +67,15 @@ import ah_E3 "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/ah/ah_E
 
 # Sample controls
 # Sample tuning?? (buscar millor nom)
+
+## Sample Pitch
+`pitch` — Transposes the source in 12-tone equal temperament steps.
+Then, `pitch 12` raises the source by one octave.
+```
+inst > guitar len 4
+ pitch 0 3 7 12
+```
+
 ## Sample Lenght
 `len` — Sets the duration of each event in seconds.
 ```
