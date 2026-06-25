@@ -66,17 +66,22 @@ import ah_E3 "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/ah/ah_E
 
 
 # Sample controls
-# Sample tuning?? (buscar millor nom)
-
-## Sample Pitch
+## Pitch
 `pitch` — Transposes the source in 12-tone equal temperament steps.
 Then, `pitch 12` raises the source by one octave.
 ```
 inst > guitar len 4
  pitch 0 3 7 12
 ```
-
-## Sample Lenght
+## Pitch(n) (TBD)
+`pitch(n)` — Transposes the source in n equal divisions of the octave.
+`pitch` is equivalent to `pitch(12)`.
+This allows alternative tuning systems and microtonal music.
+```
+inst > source guitar
+  pitch(5) 0 1 2 4 5
+```
+## Length
 `len` — Sets the duration of each event in seconds.
 ```
 voice > source uhhh
