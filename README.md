@@ -156,6 +156,19 @@ Rather than defining sequences of events, N-ary defines regions in time. Multipl
 
 
 
+# Credits
+N-ary would not exist without the many tools, ideas and artists that inspired it.
+
+Special thanks to the communities and creators behind **SuperCollider**, **Tidal Cycles**, **Strudel** and **Mercury**, whose work helped shape my understanding of live coding and musical systems.
+
+I am also deeply indebted to artists such as Aphex Twin, Burial, Bogdan Raczynski, Vegyn, Four Tet, Loukeman, Brian Eno and Boards of Canada for years of inspiration.
+
+Thank you.
+
+# Licence
+Nary is released under the GNU General Public License v3.0 (GPL-3.0).
+
+This project is intended to remain free and open. You are welcome to use, modify and share it, but any derivative work must remain equally free and open under the same license.
 
 
 
