@@ -114,6 +114,31 @@ guitar_lpf > source guitar loop 2
 
 
 
+# Sequencing
+
+When multiple values are provided for a parameter, the loop is divided into equal regions.
+
+Events inherit the value of the region in which they occur.
+
+pitch 0 3 7 12
+
+creates 4 equal regions:
+
+| 0 | 3 | 7 | 12 |
+
+The same applies to any parameter:
+
+```
+guitar > source guitar loop 4
+pitch 0 3 7 12
+lpf 500 1000 4000 12000
+reverb 0 0.2 0.5 1
+```
+
+Rather than defining sequences of events, N-ary defines regions in time. Multiple parameter regions combine to create sonic territories across the loop timeline.
+
+
+
 
 
 
