@@ -148,8 +148,8 @@ guitar_lpf > source guitar loop 2
 ## Delay
 
 
-
-# Sequencing
+# Functions
+## Sequencing
 
 When multiple values are provided for a parameter, the loop is divided into equal regions.
 
@@ -172,6 +172,10 @@ reverb 0 0.2 0.5 1
 
 Rather than defining sequences of events, N-ary defines regions in time. Multiple parameter regions combine to create sonic territories across the loop timeline.
 
+
+## Glide(time) TBD
+Idea: delay 0.8
+      dt 20 60 glide(50) (for now all in ms)
 
 
 
