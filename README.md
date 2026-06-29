@@ -66,7 +66,8 @@ Use any of the samples already included in the project:
 | Pads | `field_c`, `city_c` |
 
  *<sup>1</sup>These drum samples were sourced from 99Sounds: https://99sounds.org/*
- *<sup>1</sup>This piano sample was sourced from: https://theremin.music.uiowa.edu/mispiano.html*
+ 
+ *<sup>2</sup>This piano sample was sourced from: https://theremin.music.uiowa.edu/mispiano.html*
  
  **(xN) indicates that there are N variants of this sample. The first variant has no number suffix (e.g. `kick`, `kick2`, `kick3`, ...).*
 
