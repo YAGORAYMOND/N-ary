@@ -94,6 +94,7 @@ Then, `pitch 12` raises the source by one octave.
 inst > guitar len 4
  pitch 0 3 7 12
 ```
+<!--
 ## Pitch(n) (TBD)
 `pitch(n)` — Transposes the source in n equal divisions of the octave.
 `pitch` is equivalent to `pitch(12)`.
@@ -102,6 +103,8 @@ This allows alternative tuning systems and microtonal music.
 inst > source guitar
   pitch(5) 0 1 2 4 5
 ```
+-->
+
 ## Length
 `len` — Sets the duration of each event in seconds.
 ```
@@ -172,13 +175,11 @@ reverb 0 0.2 0.5 1
 
 Rather than defining sequences of events, N-ary defines regions in time. Multiple parameter regions combine to create sonic territories across the loop timeline.
 
-
+<!--
 ## Glide(time) TBD
 Idea: delay 0.8
       dt 20 60 glide(50) (for now all in ms)
-
-
-
+-->
 
 
 # Credits
