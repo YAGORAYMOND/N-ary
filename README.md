@@ -196,8 +196,11 @@ Nary is released under the GNU General Public License v3.0 (GPL-3.0).
 
 This project is intended to remain free and open. You are welcome to use, modify and share it, but any derivative work must remain equally free and open under the same license.
 
-
-
+<!--
+TO DO:
+  - Possibilitar que un mateix track pugui tenir varios delays o varios reverbs, reenfocar la visió dels efectes com a pedals que s'encadenen al track i no com a parámetres del track
+  - Crear la variable send i el concepte de bus. Per poder der track1 > (...) send 0.5 all i despres definir all > reverb etc etc.
+-->
 --------------------------------------------------------------------------
 
 
