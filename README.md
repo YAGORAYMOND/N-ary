@@ -37,7 +37,7 @@ Each track is defined as follows:
 
 Example:
 
-<img width="272" height="46" alt="image" src="https://github.com/user-attachments/assets/a19e32cb-6661-4011-b621-ff6b6c7fec18" />
+<img width="168" height="24" alt="image" src="https://github.com/user-attachments/assets/cb269241-1f62-46b6-93e8-b014a0ef3710" />
 
 When executing, a **loop bar** appears for each track.
 
