@@ -1,26 +1,8 @@
 <!--
  ===========================================================
-  N-ARY ENGINE: TO-DO LIST (ROADMAP DE DESENVOLUPAMENT)
+ TO-DO LIST
   ===========================================================
-FALLOS:
-- Les barres no van independents
-- Les velocitats diferents no van
-- Quan borres una es borren les dues
-- Molaria que es marques la barra en que esta seleccionada
-- no s'executa una sola vegada el sample quan cliques el x sino moltes i nomes hauria de ser una per click
-
-
-
-  [ ] 1. AUDIO ENGINE: FIDELITAT I FÍSICA
-      [ ] Implementar PINK NOISE: El 'source noise' actual és blanc. 
-          Necessitem un filtre de 1/f per a textures orgàniques.
-      [ ] LFO MODULATION ENGINE: Fer que 'cycle' i 'drift' realment 
-          modifiquin els paràmetres en temps real (AudioParam automation).
-      [ ] TRUE JITTER: Afegir el paràmetre 'jitter' per desplaçar el start-time 
-          de cada gra aleatòriament (actualment el rate és massa rítmic).
-      [ ] FEEDBACK DELAY NETWORK: Millorar el 'reverb' perquè no sigui només 
-          convolució, sinó una cua que es retroalimenta infinitament.
-
+Arqueologia...revisar en un futur si hi ha coses que encara interesen
   [ ] 2. TONALITAT: MICROTONALITAT NATIVA
       [ ] TUNING TABLES: Crear un diccionari amb sistemes reals 
           (31-TEIT, 19-TET, Pythagorean, Just Intonation).
@@ -29,41 +11,14 @@ FALLOS:
       [ ] POLYPHONIC FLUX: Permetre que un sol flux 'N-ary' generi 
           acords complexos si es defineixen múltiples ràtios al pitch.
 
-  [ ] 3. INTERFÍCIE (UI/UX)
-      [ ] SYNTAX HIGHLIGHTING: Afegir colors al textarea perquè es 
-          distingeixin 'source', 'pitch', i els valors numèrics.
-      [ ] FILE DROP SOURCE: Permetre arrossegar un .wav/.mp3 per usar-lo 
-          com a buffer en lloc de només oscil·ladors (Essencial Microcosm).
-      [ ] HOLOGRAPHIC VISUALIZER: Que el canvas reaccioni realment a la 
-          freqüència i densitat de cada flux de forma independent.
 
-  [ ] 4. OPTIMITZACIÓ (ELIMINACIÓ DEFINITIVA DE CLICKS)
-      [ ] AUDIO WORKLET: Moure tot el càlcul de grans a un fil separat (Worker). 
-          setInterval() és poc precís i és el culpable dels micro-clicks rítmics.
-      [ ] ZERO-CROSSING DETECTION: Que el gra només s'inicii quan l'ona 
-          està a zero per evitar transitoris agressius.
 
-  [ ] 5. SISTEMA N-ary (LÒGICA PROPIA)
-      [ ] INTERFERÈNCIA: Que un flux pugui modular-ne un altre 
-          (Ex: 'reverb' de Flux A controlat per l'activitat de Flux B).
-      [ ] MACRO/MICRO FOCUS: Refinar la transició entre els dos modes 
-          com una interpolació suau d'envolupants.
-
-[ ] control + punt stop
-[ ] quan reevalues s'elimina el sinte 
-[ ] drag and drop samples
-[ ] loop y n
-[ ] execute single chunks
-[ ] tab indentation not working
+[ ] execute single chunks?????? crec que no ara que tot ha de ser continu... pero veure.
 [ ] pitch 0 step 1 2 3 no funciona!
-[ ] implementar un log per veure els errors
 [ ] line in
-[ ] sequencer (1 2 1 _) _:allarga la nota , s: silence?
-
-[ ] implementar tot lo de al v3.1 que s'ha perdut
+[ ] Allargar notes d'alguna manera??? adsr? no hem tocat aquest tema
 [ ] implemetnar un volume (gain) (0-1) (time s) volume 0.4 3
-[ ] implementar el tema dels patterns amb tecla sobre la zona
-  ===========================================================
+
 
 FUTURA IMPLEMENTACIÓ GRANULATOR:
     shimmer (passar a harmonizer) → crea harmonics (density, spread)
@@ -72,7 +27,10 @@ FUTURA IMPLEMENTACIÓ GRANULATOR:
 MES IDEES:
     Dividir l'escala en tons, apart de "pitch" que hi hagi "pitch(5)" divideix la octava/escala en 5 (=pentatonica) etc.
 
+***EL REVERB nomes va sobre la primera instancia, no sobre el delay. Et fot pal intentar fer microlooping...
 
+
+HO MANTINC NOMES PER TENIR CLARES LES FUNCIONS QUE HI HA I VEURE SI EN UN FUTUR RESCATO SHIMMER ETC.
 atmosfera > source ah_E3
   rate 2
   pitch 12
@@ -95,7 +53,7 @@ ritme > source fatbass_1
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Nary: natural patterns sample-oriented live coding environment</title>
+    <title>Nary live coding</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
@@ -188,7 +146,7 @@ guit1 > source guitar loop 2
         //instruments
         "guitar": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/instruments/guitar_C_rec.wav",
         "violin": "TBD",
-        "piano": "TBD",
+        "piano": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/instruments/piano_C4.wav",
 
         //vocals
         "choir": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/aachen/choir4.mp3",
@@ -210,6 +168,41 @@ guit1 > source guitar loop 2
     
     }
 
+    //Llista de paraules reservades per al parser dividides per:
+    //Parametres de track   
+    const TRACK_PARAMS = new Set([
+        "source",
+        "loop",
+        "gain",
+        "pitch",
+        "pan",
+        "len",
+        "activity",
+        "scatter",
+        "shimmer",
+        "reverb"
+    ]);
+    //nom d'efectes (pedals disponibles)
+    const EFFECT_TYPES = new Set([
+        "delay"
+    ]);
+    //hiperparámetres de cada efecte
+    const EFFECT_PARAMS = {
+        delay: new Set([
+            "delay",
+            "dt",
+            "dt_glide",
+            "dfb"
+        ])
+    };
+
+    // Compatibilitat temporal
+    const PARAMS = new Set([
+        ...TRACK_PARAMS,
+        ...EFFECT_TYPES,
+        ...Object.values(EFFECT_PARAMS).flatMap(s => [...s])
+    ]);
+
     window.repo = "";
     //EFECTES
     window.fx = {
@@ -227,7 +220,7 @@ guit1 > source guitar loop 2
     let loopEvents = [];          // Esdeveniments (valors entre 0 i 1)
     let isPressingErase = false;  // Estat de la tecla 'o'
 
-    // CREEM LA REVERB GLOBAL (bus)
+    // bus de efectes globals (al so total):
     window.buses = {};
     window.buses.reverbDelay =
         new Tone.Delay(
@@ -238,6 +231,73 @@ guit1 > source guitar loop 2
             decay: window.fx.decay,
             wet: 1
         });
+    //bus de efectes individuals de track:
+    window.trackFX = {};
+
+    //log
+    window.naryStatus = {
+        active: [],
+        info: [],
+        warnings: [],
+        errors: []
+    };
+    function statusReset(){
+        window.naryStatus = {
+            active: [],
+            info: [],
+            warnings: [],
+            errors: []
+        };
+    }
+    function statusActive(id){
+        if(!window.naryStatus.active.includes(id))
+            window.naryStatus.active.push(id);
+    }
+    function statusInfo(msg){
+        window.naryStatus.info.push(msg);
+    }
+    function statusWarning(msg,line){
+        window.naryStatus.warnings.push({
+            line,
+            msg
+        });
+    }
+    function statusError(msg,line){
+        window.naryStatus.errors.push({
+            line,
+            msg
+        });
+    }
+    //actualitzar el log a cada ctrl + enter
+    function statusUpdate(){
+        const parts = [];
+        // active
+        if(window.naryStatus.active.length){
+            parts.push("ACTIVE: " + window.naryStatus.active.join(", "));
+        }
+        // info
+        window.naryStatus.info.forEach(msg=>{ parts.push(msg);});
+        // warnings
+        window.naryStatus.warnings.forEach(w=>{
+            if(w.line!=null){
+                parts.push(`<span style="color:#FFD54F">⚠ ln.${w.line} ${w.msg}</span>`);
+            }else{
+                parts.push(`<span style="color: #FFD54F;">⚠ ${w.msg}</span>`);
+            }
+        });
+        //errors
+        window.naryStatus.errors.forEach(e=>{
+            if(e.line!=null){
+                parts.push(`<span style="color: #FF4A4A;">(>_<) ln.${e.line} ${e.msg}</span>`);
+            }else{
+                parts.push(`<span style="color: #FF4A4A;">(>_<) ${e.msg}</span>`);
+            }
+        //join (representar els elements del log encadenats amb un pipe |)
+        });
+        logElement.innerHTML =
+            parts.join(" | ");
+    }
+
     window.buses.reverbDelay.connect(
         window.buses.reverb
     );
@@ -245,7 +305,9 @@ guit1 > source guitar loop 2
     window.buses.reverb.toDestination();
     window.buses.reverb.generate();
 
+    //////////////////////////////
     // 2. EL MOTOR (Nary Engine)
+    /////////////////////////////
     const nary = {
         fluxParams: {},
 
@@ -284,13 +346,13 @@ guit1 > source guitar loop 2
         ) => {
             const sourceName = params.source?.trim();
             if (!sourceName) {
-                console.warn(`Missing source in track "${trackName}"`);
+                statusError("Missing source");
+                statusUpdate();
+                return;
+            }  
+            if (!window.samples[sourceName]) {
                 return;
             }
-            if (!window.samples[sourceName]) {
-                console.warn(`Sample "${sourceName}" not found`);
-                return;
-}
             const shimmer = params.shimmer ? parseFloat(params.shimmer) : 0;
             const scatter = params.scatter ? parseFloat(params.scatter) : 0;
             const harmonics = [1, 2, 1.5, 0.75, 4];
@@ -340,15 +402,39 @@ guit1 > source guitar loop 2
                             fFreq,
                             "lowpass"
                         );
-                    filter.toDestination();
 
-                    //reverb
+                    // El delay de Tone ja incorpora el camí dry.
+                    // Només enviem directe si aquest track no utilitza delay.
+                    const trackEffects =
+                        window.trackFX[id]?.effects || [];
+                    for (const effect of trackEffects) {
+                        effect.update(
+                            params,
+                            eventPosition
+                        );
+                    }
+                    const hasEffects =
+                        trackEffects.length > 0 &&
+                        parseFloat(params.delay || 0) > 0;
+                    if (!hasEffects) {
+                        filter.toDestination();
+                    }
+                    //connectar efectes globals (reverb)
                     const reverbSend =
                         new Tone.Gain(revValue);
                     filter.connect(reverbSend);
                     reverbSend.connect(
                         window.buses.reverbDelay
                     );
+                    //cadena d'efectes
+                    let currentNode = filter;
+                    for (const effect of trackEffects) {
+                        currentNode.connect(effect.node);
+                        currentNode = effect.node;
+                    }
+                    if (hasEffects) {
+                        currentNode.toDestination();
+                    }
 
                     const envelope = new Tone.Gain(0).connect(filter);
                     const player = new Tone.Player({
@@ -434,9 +520,34 @@ guit1 > source guitar loop 2
             },
         createFlux: (id, params) => {
             const sourceName = params.source?.trim();
-            if (!window.samples[sourceName]) return;
+            if (!sourceName)
+                return;
+            if (!window.samples[sourceName]) 
+                return;
 
             Tone.getDestination().volume.value = 0; 
+
+            //DELAY
+            // si el track encara no existeix, el creem
+           if (!window.trackFX[id]) {
+                window.trackFX[id] = {
+                    effects: []
+                };
+            }
+            // si el track encara no té delay, el creem
+            if (
+                params.delay &&
+                window.trackFX[id].effects.length === 0
+            ) {
+                window.trackFX[id].effects.push(
+                    effectFactory.createDelay(params)
+                );
+            }
+            
+            //actualitzar delay a cada ctrl enter
+            for (const effect of window.trackFX[id].effects) {
+                effect.update(params);
+            }
 
             const interval = 1/120; // 120 Hz de precisió fixa per defecte
             const shimmer = params.shimmer ? parseFloat(params.shimmer) : 0;
@@ -448,7 +559,7 @@ guit1 > source guitar loop 2
                 Tone.Transport.seconds;
 
             const loop = new Tone.Loop(time => {
-                // Sincronització amb la barra visual (si està activa)
+            // Sincronització amb la barra visual (si està activa)
             if (naryUI.events[id]) {
                 const currentDuration =
                     naryUI.durations[id] || 5;
@@ -494,12 +605,72 @@ guit1 > source guitar loop 2
                 previousTransportSeconds =
                     currentTransportSeconds;
             }
-               
-                
-
             }, interval).start(0);
             
             activeLoops[id] = loop;
+
+            statusActive(id); 
+        }
+    };
+
+    //////////////////////
+    //2. EFECTES o PEDALS: (els que ja son indpendents, l'objectiu es que tots acabin aqui)
+    //////////////////////
+    const effectFactory = {
+        //DELAY
+        createDelay(params){
+            const node =
+                new Tone.FeedbackDelay();
+            node.toDestination();
+            return {
+                type: "delay",
+                node,
+                update(params, eventPosition = 0){
+                    this.params = structuredClone(params);
+                    
+                    //dry-wet
+                    node.wet.rampTo(
+                        parseFloat(
+                            nary.getRegionValue(
+                                this.params.delay,
+                                eventPosition
+                            ) || 0
+                        ),
+                        0.02
+                    );
+
+                    //delay time (dt)
+                    const delay_time_glide = // temps (s) que triga a arribar al nou valor
+                        parseFloat(this.params.dt_glide || 0.3);
+                    node.delayTime.rampTo(
+                        parseFloat(
+                            nary.getRegionValue(
+                                this.params.dt,
+                                eventPosition
+                            ) || 400
+                        ) / 1000,
+                        delay_time_glide
+                    );
+
+                    //delay feedback (dfb)
+                    const feedback =
+                        parseFloat(
+                            nary.getRegionValue(
+                                this.params.dfb,
+                                eventPosition
+                            ) || 0.5
+                        );
+
+                    node.feedback.value =
+                        Math.max(
+                            0,
+                            Math.min(
+                                feedback,
+                                1 //posem rang 0-1 pq no peti
+                            )
+                        );
+                }
+            };
         }
     };
 
@@ -536,7 +707,6 @@ guit1 > source guitar loop 2
             canvas.style.cssText = 'background: #000; border: 1px solid #555; border-radius: 3px; display: block;';
             canvas.addEventListener('click', () => {
                 naryUI.selectedId = id;
-                logElement.innerText = `PATTERN MODE: ${id}`;
             });
 
             container.appendChild(canvas);
@@ -627,10 +797,6 @@ guit1 > source guitar loop 2
                     naryUI.selectedId
                 ) {
                     naryUI.events[naryUI.selectedId] = [];
-
-                    logElement.innerText =
-                        `CLEARED: ${naryUI.selectedId}`;
-
                     e.preventDefault();
                     return;
                 }
@@ -697,7 +863,6 @@ naryInput.init();
     // Quan cliquem dins del codi, sortim del mode patró
     editor.on('mousedown', () => {
         naryUI.selectedId = null;
-        logElement.innerText = "TEXT MODE";
     });
 
     
@@ -705,6 +870,8 @@ naryInput.init();
     async function execute() {
         console.log("Comandament EXECUTE rebut");
         logElement.innerText = "EXECUTING...";
+
+        statusReset();
         
         //netejar load samples (pq no es tornin a carregar)
         window.samples = {
@@ -720,14 +887,34 @@ naryInput.init();
         
         const code = editor.getValue();
         const lines = code.split('\n');
-        
+
+        const tokenizedLines = lines.map((line, index) => ({
+            raw: line,
+            trimmed: line.trim(),
+            line: index + 1,
+            tokens: line.trim()
+                ? line.trim().split(/\s+/)
+                : []
+        }));
+                
         let currentId = null;
         let params = {};
+        let effects = [];
+        //context pel parser (saber si estem dins d'un filtre)
+        let currentContext = null;
+        let currentEffect = null;
 
-        lines.forEach(line => {
+        ////////
+        //PARSER
+        ////////
+        tokenizedLines.forEach(entry => {
+
+            const line = entry.raw;
+            const trimmed = entry.trimmed;
+            const tokens = entry.tokens;
+            const index = entry.line - 1;
 
             //commentar amb //
-            const trimmed = line.trim();
             if (!trimmed || trimmed.startsWith('//')) 
                 return;
 
@@ -774,45 +961,143 @@ naryInput.init();
                 }            
 
             if (line.includes('>')) {
+
                 if (currentId) {
-                    nary.fluxParams[currentId] = {...params};
+                    if (!params.source) {
+                        statusError(
+                            `Track "${currentId}" has no source`,
+                            index
+                        );
+                    }
+                    else if (!window.samples[params.source]) {
+                        statusError(
+                            `Sample "${params.source}" not found`,
+                            index
+                        );
+                    }
+                    params.effects = effects;
+                    nary.fluxParams[currentId] = {
+                        ...params,
+                        effects: [...effects]
+                    };
                     nary.createFlux(currentId, params);
                 }
 
                 const parts = line.split('>');
                 currentId = parts[0].trim();
-                params = {}; 
+
+                params = {};
+                effects = [];
+
+                //definir el context actual
+                currentContext = "track";
+                currentEffect = null;
                 
                 const inline = parts[1].trim().split(/\s+/);
                 for (let i = 0; i < inline.length; i += 2) {
                     if (inline[i] && inline[i+1]) {
-                        params[inline[i]] = inline[i+1];
-                        
-                        // NOU: Si l'usuari ha definit un 'loop X' a la línia principal, guardem la durada real immediatament
-                        if (inline[i] === 'loop') { // <-- NOU
-                            naryUI.durations[currentId] = parseFloat(inline[i+1]); // <-- NOU
-                        } // <-- NOU
+                        const token = inline[i];
+                    
+                        // Valida si el paràmetre és correcte a la primera línia
+                        if (!PARAMS.has(token)) {
+                            statusWarning(`Unknown parameter '${token}'`, index + 1);
+                        }
+                        params[token] = inline[i+1];
+                        if (token === 'loop') {
+                            naryUI.durations[currentId] = parseFloat(inline[i+1]);
+                        }
                     }
                 }
                 
-                naryUI.injectBar(currentId, lines.indexOf(line));
+                naryUI.injectBar(currentId, index);
             } 
-            else if (currentId && (line.startsWith(' ') || line.startsWith('\t'))) {
-                const p = trimmed.split(/\s+/);
-                if (p[0] && p.length > 1) {
-                    params[p[0]] =
-                        p.slice(1).join(' ');
-                    if (p[0] === 'loop') {
-                        naryUI.durations[currentId] =
-                            parseFloat(p[1]);
+            else if (currentId) {
+                // Ignora capçaleres de track (ja s'han processat abans)
+                if (line.includes(">")) {
+                    return;
+                }
+                // Canvi de context: comença un nou efecte
+                if (
+                    tokens.length === 1 &&
+                    EFFECT_TYPES.has(tokens[0])
+                ) {
+                    currentEffect = {
+                        type: tokens[0]
+                    };
+                    effects.push(currentEffect);
+                    currentContext = "effect";
+                    return;
+                }
+
+                let currentKey = null;
+                let values = [];
+                
+                for (const token of tokens) {
+                    if (PARAMS.has(token)) {
+
+                        if (currentKey) {
+                            const value = values.join(" ");
+                            if (
+                                currentContext === "effect" &&
+                                currentEffect
+                            ) {
+                                currentEffect[currentKey] = value;
+                            }
+                            else {
+                                params[currentKey] = value;
+                            }
+                        }
+
+                        currentKey = token;
+                        values = [];
+                    } else {
+                        //si en token no esta a la llista de funcions tira un warning a la consola 
+                        if (
+                            /^[a-zA-Z_]\w*$/.test(token) &&
+                            !PARAMS.has(token)
+                        ) {
+                            //warnings.push(
+                            statusWarning(
+                                `Unknown parameter'${token}'`,
+                                index + 1
+                            );
+                        }
+                        values.push(token);
                     }
+                }
+                if (currentKey) {
+                    params[currentKey] =
+                        values.join(" ");
                 }
             }
         });
 
+        //error si no encaixa el nom del sample
         if (currentId) {
-            nary.fluxParams[currentId] = {...params};
-            nary.createFlux(currentId, params);
+            if (!params.source) {
+                statusError(
+                    `Track "${currentId}" has no source`,
+                    lines.length
+                );
+            }
+            else if (!window.samples[params.source]) {
+                statusError(
+                    `Sample "${params.source}" not found`,
+                    lines.length
+                );
+            }
+            params.effects = effects;
+
+            //al acabar un track es neteja el context
+            currentContext = null;
+            currentEffect = null;
+
+            nary.fluxParams[currentId] = {
+                ...params,
+                effects: [...effects]
+            };
+            console.log(effects); //verif temp
+            nary.createFlux(currentId, params); 
         }
 
         //a cada ctrl+enter revisa si valor de reverb ha canviat
@@ -842,13 +1127,22 @@ naryInput.init();
             Tone.Transport.start();
         }
         
-        logElement.innerText = "RUNNING: " + Object.keys(activeLoops).join(", ");
+        statusUpdate();
     }
 
     // 6. STOP (Més net)
    function stop() {
         console.log("Comandament STOP rebut");
         logElement.innerText = "STOPPED";
+
+        //Atenuar progressivament el dfb per evitar casos dfb=1 so etern
+        Object.values(window.trackFX).forEach(track => {
+            track.effects.forEach(effect => {
+                if (effect.type === "delay") {
+                    effect.node.feedback.rampTo(0,10);
+                }
+            });
+        });
 
         // Aturem el transport de Tone.js
         Tone.Transport.stop();
@@ -864,6 +1158,18 @@ naryInput.init();
 
 
         window.activeLoops = {}; // Reiniciem el magatzem de bucles
+
+        //netejar els objectes delays morts perque no s'acumulin
+        Object.values(window.trackFX).forEach(track => {
+            track.effects.forEach(effect => {
+                setTimeout(
+                    () => effect.node.dispose(),
+                    15000
+                );
+            });
+        });
+
+        window.trackFX = {};
 
         // NETEJA DE LES BARRES INTERACTIVES (NaryUI)
         if (window.naryUI) {
@@ -890,14 +1196,14 @@ naryInput.init();
                 loop.dispose();
             });
         }
-        // window.activePlayers.forEach(player => {
-        //     try {
-        //         player.stop();
-        //         player.dispose();
-        //     } catch {}
-        // });
-        // window.activePlayers = [];
+        
         window.activeLoops = {};
+
+        //elimina delays antics quan clico ctrl enter
+        // Object.values(window.trackFX).forEach(fx => {
+        //     fx.delay.dispose();
+        // });
+        // window.trackFX = {};
     }
 
     // Per si fas clic fora de l'editor, que els shortcuts funcionin igual
