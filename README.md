@@ -149,7 +149,30 @@ guitar_lpf > source guitar loop 2
 
 
 ## Delay
+Each track has its own delay effect.
 
+Parameters:
+
+- `delay` — Amount of delayed signal (dry/wet). (range=`0-1`, default=`0`)
+- `dt` — Delay time in milliseconds. (default=`400`)
+- `dfb` — Feedback amount. Higher values produce more repetitions. (range=`0-1`, default=`0.5`)
+- `dt_glide` — Time in seconds used to smoothly transition between `dt` values. (default=`0.3`)
+
+```
+guitar > source guitar loop 4
+ delay 0.6
+ dt 250
+ dfb 0.7
+```
+
+Delay parameters can also be sequenced:
+
+```
+drum > source snare2 loop 4
+ delay 0 0.3 0.6 1
+ dt 100 200 400 800
+ dfb 0.2 0.4 0.6 0.8
+```
 
 # Functions
 ## Sequencing
