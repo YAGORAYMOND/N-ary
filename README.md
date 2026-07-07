@@ -18,8 +18,9 @@ N-ary is a web-based environment where sounds are organized into playable struct
 - [Local Effects](#local-effects)
   - [Low-pass Filter](#low-pass-filter)
   - [Delay](#delay)
-- [Sequencing](#sequencing)
-- [Rotate](#rotate)
+- [Functions](#functions)
+  - [Sequencing](#sequencing)
+  - [Rotate](#rotate)
 - [Credits](#credits)
 - [License](#license)
 
