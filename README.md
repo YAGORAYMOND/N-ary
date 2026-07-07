@@ -1,7 +1,10 @@
 
 
-# N-ary/Ordit/Ordal | An environment for playable sounds
-N-ary is a web-based environment where sounds are organized into playable structures and performed in real time using a minimal language.
+# Isard | An environment for playable sounds
+Isard is a web-based environment where sounds are organized into playable structures and performed in real time using a minimal language.
+
+Isard is the Catalan name for the Pyrenean chamois, whose agility, balance and ability to navigate complex terrain mirror the qualities of live coding.
+<img width="500" height="375" alt="image" src="https://github.com/user-attachments/assets/c289d271-740c-4160-a5eb-fd23cb2fffe2" />
 
 ## Contents
 
