@@ -19,6 +19,7 @@ N-ary is a web-based environment where sounds are organized into playable struct
   - [Low-pass Filter](#low-pass-filter)
   - [Delay](#delay)
 - [Sequencing](#sequencing)
+- [Rotate](#rotate)
 - [Credits](#credits)
 - [License](#license)
 
@@ -198,11 +199,39 @@ reverb 0 0.2 0.5 1
 
 Rather than defining sequences of events, N-ary defines regions in time. Multiple parameter regions combine to create sonic territories across the loop timeline.
 
-<!--
-## Glide(time) TBD
-Idea: delay 0.8
-      dt 20 60 glide(50) (for now all in ms)
--->
+## Rotate
+`rotate` — Circularly shifts all sequenced parameter values by a fixed number of positions after each completed loop.
+
+Positive values rotate forward, negative values rotate backward.
+
+```
+guitar > source guitar loop 4
+pitch 0 3 7 12 rotate 1
+```
+This produces the following loops in pitch:
+
+  > Loop 1: | 0  | 3  | 7  | 12 |  
+    Loop 2: | 3  | 7  | 12 | 0  |  
+    Loop 3: | 7  | 12 | 0  | 3  |  
+    Loop 4: | 12 | 0  | 3  | 7  |  
+    Loop 5 = Loop 1  
+
+Because rotation is applied to parameter regions rather than events, it affects every sequenced parameter simultaneously. (TO BE CHANGED TO EACH PARAMETER WITH THE NEW PARSER THAT IDENTIFIES PARAMETERS).
+
+```
+guitar > source guitar loop 4
+ pitch 0 3 7 12
+ lpf 500 1000 4000 12000
+ reverb 0 0.2 0.5 1
+ rotate 1
+```
+
+Negative values rotate in the opposite direction:
+
+```
+guitar > source guitar loop 4
+pitch 0 3 7 12 rotate -1
+```
 
 
 # Credits
@@ -227,26 +256,11 @@ TO DO:
 --------------------------------------------------------------------------
 
 
-## 🔊 Getting Started
 
-1. Download the `N-ary.html` file and open it in any web browser.
-2. Type your code in the editor.
-3. Press **`Ctrl + Enter`** to **render** or update the sound.
-4. Press **`Ctrl + .`** to **stop** the engine.
-5. ENJOY!
 
----
-
-## 📄 Language Syntax
-
-The language is based on **Fluxes**. A flux is defined by a name followed by the `>` symbol and a list of indented attributes.
-```n-ary
-cloud_name > source triangle
-  rate 10
-  grain 500ms
-
+Functions to be reviewed (past first version, maybe recovered maybe deleted)
 ````
-## 🎛️ Functions & Attributes
+## Functions & Attributes
 
 | Attribute | Description | Recommended Values |
 | ---- | --- | --- |
@@ -260,7 +274,7 @@ cloud_name > source triangle
 | **activity** | Probability of a grain being triggered. | `0` to `1.0` |
 
 
-## 🤓⌨️ Examples
+## Examples
 1. Atmospheric Cloud (Ambient Pad)
   A soft, deep texture that evolves slowly.
 ```
@@ -293,8 +307,6 @@ bass > source sawtooth
   fine_detune 30
   reverb 0.4
 ```
-## 📜 License
-Project created for sonic experimentation. Free to use and modify.
 
 
 
