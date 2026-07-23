@@ -206,7 +206,7 @@ reverb 0 0.2 0.5 1
 Rather than defining sequences of events, N-ary defines regions in time. Multiple parameter regions combine to create sonic territories across the loop timeline.
 
 ## Rotate
-`rotate` — Circularly shifts all sequenced parameter values by a fixed number of positions after each completed loop.
+`rotate` — Circularly shifts the values of the immediately preceding sequenced parameter by a fixed number of positions after each completed loop.
 
 Positive values rotate forward, negative values rotate backward.
 
@@ -222,15 +222,14 @@ This produces the following loops in pitch:
     Loop 4: | 12 | 0  | 3  | 7  |  
     Loop 5 = Loop 1  
 
-Because rotation is applied to parameter regions rather than events, it affects every sequenced parameter simultaneously. (TO BE CHANGED TO EACH PARAMETER WITH THE NEW PARSER THAT IDENTIFIES PARAMETERS).
+`rotate` applies only to the parameter immediately preceding it. Different sequenced parameters can therefore rotate independently.
 
 ```
 guitar > source guitar loop 4
- pitch 0 3 7 12
- lpf 500 1000 4000 12000
- reverb 0 0.2 0.5 1
- rotate 1
+pitch 0 3 7 12 rotate 1
+reverb 0 0.2 0.5 1 rotate -1
 ```
+Here, `pitch` rotates forward by one position per loop, while `reverb` rotates backward by one position per loop.
 
 Negative values rotate in the opposite direction:
 
