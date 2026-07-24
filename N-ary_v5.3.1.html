@@ -46,14 +46,21 @@ ritme > source fatbass_1
   grain 500
   reverb 0.1
   shimmer 0
--->
+
+
+  TO DO: 
+   - Tone.js timing warning: effect.update() is called from inside a Tone.Loop callback, but wet.rampTo()/delayTime.rampTo() ignore the callback's scheduled time; propagate time through Tone.Loop → triggerFlux() → effect.update() and schedule those AudioParam automations using that exact time.
+   - reverb com a pedal? filosofar...
+   - el doble delay
+   - shimmer /scatter /harmonics > Rescatar el que calgui. Veure com dividir i que siguin pedals. Pensar en microcosmos.
+   -->
 
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DAINA live coding</title>
+    <title>N-ary live coding</title>
     <!-- Favicon -->
     <!-- Generat amb: "https://base64.guru/converter/encode/image/png" opció: HTML Favicon -->
     <link rel="shortcut icon" href="data:image/png;base64,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" />
@@ -170,10 +177,18 @@ guit1 > source guitar loop 2
         //pads
         "field_c": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/field/field_c_2.wav",
         "city_c": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/pad/sichuan_ambience_pad_C.wav",
-    
     }
 
+
+    ///////////////////////
     //Llista de paraules reservades per al parser dividides per:
+    ///////////////////////
+
+    //Parametres globals (Del reverb etc, potser canviar per all+pedal en un futur)
+    const GLOBAL_PARAMS = new Set([
+        "decay",
+        "predelay"
+    ]); 
     //Parametres de track   
     const TRACK_PARAMS = new Set([
         "source",
@@ -185,29 +200,50 @@ guit1 > source guitar loop 2
         "activity",
         "scatter",
         "shimmer",
-        "reverb",
+        "reverb"
+    ]);
+    // Modificadors que s'apliquen
+    // al paràmetre anterior
+    const PARAM_MODIFIERS = new Set([
         "rotate"
     ]);
-    //nom d'efectes (pedals disponibles)
+        //nom d'efectes (pedals disponibles)
     const EFFECT_TYPES = new Set([
         "delay"
     ]);
     //hiperparámetres de cada efecte
     const EFFECT_PARAMS = {
         delay: new Set([
-            "delay",
             "dt",
             "dt_glide",
             "dfb"
         ])
     };
 
-    // Compatibilitat temporal
-    const PARAMS = new Set([
-        ...TRACK_PARAMS,
-        ...EFFECT_TYPES,
-        ...Object.values(EFFECT_PARAMS).flatMap(s => [...s])
-    ]);
+    // Regles especials de consum de valors.
+    // Per defecte, els paràmetres accepten
+    // múltiples valors numèrics.
+    const VALUE_RULES = {
+        source: {
+            numericOnly: false,
+            maxValues: 1
+        },
+
+        loop: {
+            numericOnly: true,
+            maxValues: 1
+        },
+
+        decay: {
+            numericOnly: true,
+            maxValues: 1
+        },
+
+        predelay: {
+            numericOnly: true,
+            maxValues: 1
+        }
+    };
 
     window.repo = "";
     //EFECTES
@@ -221,12 +257,6 @@ guit1 > source guitar loop 2
     window.activeLoops = {}; 
     window.activePlayers = [];
     window.loopIterations = {}; //contador d'iteracions per a "rotate"
-
-    //per controlar el widget de la barra:
-    let currentLoopWidget = null; // Guarda el widget visual de CodeMirror
-    let targetLoopDuration = 0;   // Durada en segons
-    let loopEvents = [];          // Esdeveniments (valors entre 0 i 1)
-    let isPressingErase = false;  // Estat de la tecla 'o'
 
     // bus de efectes globals (al so total):
     window.buses = {};
@@ -245,14 +275,12 @@ guit1 > source guitar loop 2
     //log
     window.naryStatus = {
         active: [],
-        info: [],
         warnings: [],
         errors: []
     };
     function statusReset(){
         window.naryStatus = {
             active: [],
-            info: [],
             warnings: [],
             errors: []
         };
@@ -260,9 +288,6 @@ guit1 > source guitar loop 2
     function statusActive(id){
         if(!window.naryStatus.active.includes(id))
             window.naryStatus.active.push(id);
-    }
-    function statusInfo(msg){
-        window.naryStatus.info.push(msg);
     }
     function statusWarning(msg,line){
         window.naryStatus.warnings.push({
@@ -283,8 +308,6 @@ guit1 > source guitar loop 2
         if(window.naryStatus.active.length){
             parts.push("ACTIVE: " + window.naryStatus.active.join(", "));
         }
-        // info
-        window.naryStatus.info.forEach(msg=>{ parts.push(msg);});
         // warnings
         window.naryStatus.warnings.forEach(w=>{
             if(w.line!=null){
@@ -313,6 +336,81 @@ guit1 > source guitar loop 2
     window.buses.reverb.toDestination();
     window.buses.reverb.generate();
 
+    //rotate per a reverb i track effects
+    function getTrackRotate(
+        params,
+        paramName
+    ) {
+        const value =
+            params
+                .__trackModifiers
+                ?.[paramName]
+                ?.rotate
+                ?.[0];
+
+        const rotate =
+            parseInt(value);
+
+        return Number.isInteger(rotate)
+            ? rotate
+            : 0;
+    }
+
+    //rotate per a track effects (pitch etc)
+    function getEffectRotate(
+        params,
+        effectType,
+        paramName = null
+    ) {
+
+        const effectMeta =
+            params
+                .__effectsMeta
+                ?.find(
+                    effect =>
+                        effect.type ===
+                        effectType
+                );
+
+        if (!effectMeta) {
+            return 0;
+        }
+
+        let value;
+
+        // Modificador del valor principal
+        // e.g. delay .2 .8 rotate 1
+        if (paramName === null) {
+
+            value =
+                effectMeta
+                    .modifiers
+                    ?.rotate
+                    ?.[0];
+
+        }
+
+        // Modificador d'un paràmetre
+        // e.g. dt 100 500 rotate 1
+        else {
+
+            value =
+                effectMeta
+                    .paramModifiers
+                    ?.[paramName]
+                    ?.rotate
+                    ?.[0];
+
+        }
+
+        const rotate =
+            parseInt(value);
+
+        return Number.isInteger(rotate)
+            ? rotate
+            : 0;
+    }
+
     //////////////////////////////
     // 2. EL MOTOR (Nary Engine)
     /////////////////////////////
@@ -323,7 +421,8 @@ guit1 > source guitar loop 2
         //inclou la opció/funció "rotate"
         getRegionValue: (
             value,
-            eventPosition = 0
+            eventPosition = 0,
+            rotate = 0
         ) => {
 
             if (value === undefined)
@@ -347,13 +446,11 @@ guit1 > source guitar loop 2
                     values.length - 1
                 );
 
+            const rotateAmount =
+                parseInt(rotate) || 0;
+
             const ctx =
                 window.currentTrackContext;
-
-            const rotate =
-                parseInt(
-                    ctx?.params?.rotate || 0
-                );
 
             const iteration =
                 window.loopIterations[
@@ -363,9 +460,10 @@ guit1 > source guitar loop 2
             const rotatedRegion =
                 (
                     region +
-                    rotate * iteration
+                    rotateAmount *
+                    iteration
                 );
-
+        
             const index =
                 (
                     (rotatedRegion % values.length)
@@ -403,7 +501,8 @@ guit1 > source guitar loop 2
                     ? parseFloat(
                         nary.getRegionValue(
                             params.activity,
-                            eventPosition
+                            eventPosition,
+                            getTrackRotate(params, "activity")
                         )
                     )
                     : 1;
@@ -417,7 +516,8 @@ guit1 > source guitar loop 2
                         parseFloat(
                             nary.getRegionValue(
                                 params.reverb,
-                                eventPosition //definit per posició
+                                eventPosition, //definit per posició
+                                getTrackRotate(params, "reverb")
                             ) || 0 // valor de wet/dry reverb (defecte 0)
                         );   
                 
@@ -452,7 +552,8 @@ guit1 > source guitar loop 2
                     for (const effect of trackEffects) {
                         effect.update(
                             params,
-                            eventPosition
+                            eventPosition,
+                            time
                         );
                     }
                     const hasEffects =
@@ -489,7 +590,8 @@ guit1 > source guitar loop 2
                                 parseFloat(
                                     nary.getRegionValue(
                                         params.pitch,
-                                        eventPosition //posició event defineix pitch
+                                        eventPosition, //posició event defineix pitch
+                                        getTrackRotate(params, "pitch")
                                     )
                                 ) || 0;
                             const detune = (Math.random() * 0.1 - 0.05) * shimmer;
@@ -501,7 +603,8 @@ guit1 > source guitar loop 2
                                     ? parseFloat(
                                         nary.getRegionValue(
                                             params.len,
-                                            eventPosition //posicio del event defineix len
+                                            eventPosition, //posicio del event defineix len
+                                            getTrackRotate(params, "len")
                                         )
                                     )
                                     : null;
@@ -677,18 +780,27 @@ guit1 > source guitar loop 2
             return {
                 type: "delay",
                 node,
-                update(params, eventPosition = 0){
+
+
+
+
+                update(
+                    params, 
+                    eventPosition = 0,
+                    time = undefined){
                     this.params = structuredClone(params);
-                    
+                    const startTime = time ?? Tone.now();
                     //dry-wet
                     node.wet.rampTo(
                         parseFloat(
                             nary.getRegionValue(
                                 this.params.delay,
-                                eventPosition
+                                eventPosition,
+                                getEffectRotate(this.params, "delay")
                             ) || 0
                         ),
-                        0.02
+                        0.02,
+                        startTime
                     );
 
                     //delay time (dt)
@@ -698,10 +810,12 @@ guit1 > source guitar loop 2
                         parseFloat(
                             nary.getRegionValue(
                                 this.params.dt,
-                                eventPosition
+                                eventPosition,
+                                getEffectRotate(this.params, "delay", "dt")
                             ) || 400
                         ) / 1000,
-                        delay_time_glide
+                        delay_time_glide,
+                        startTime
                     );
 
                     //delay feedback (dfb)
@@ -709,7 +823,8 @@ guit1 > source guitar loop 2
                         parseFloat(
                             nary.getRegionValue(
                                 this.params.dfb,
-                                eventPosition
+                                eventPosition,
+                                getEffectRotate(this.params, "delay", "dfb")
                             ) || 0.5
                         );
 
@@ -917,7 +1032,656 @@ naryInput.init();
         naryUI.selectedId = null;
     });
 
-    
+
+
+
+
+
+    ///////////////////////
+    // NOU PARSER PER TOKENS
+    ///////////////////////
+
+    //HELPERS DEL PARSER:
+
+    // Elimina comentaris //,
+    // però respecta els // dins de "..." (URLs)
+    function stripLineComment(line) {
+        let inQuotes = false;
+        let escaped = false;
+
+        for (
+            let i = 0;
+            i < line.length - 1;
+            i++
+        ) {
+            const char = line[i];
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (char === "\\") {
+                escaped = true;
+                continue;
+            }
+            if (char === '"') {
+                inQuotes = !inQuotes;
+                continue;
+            }
+            if (
+                !inQuotes &&
+                char === "/" &&
+                line[i + 1] === "/"
+            ) {
+                return line.slice(0, i);
+            }
+        }
+        return line;
+    }    
+
+    // elimina les cometes d'un string
+    function removeQuotes(value) {
+        if (
+            value?.startsWith('"') &&
+            value?.endsWith('"')
+        ) {
+            return value.slice(1, -1);
+        }
+        return value;
+    }    
+
+    // Separa el text en tokens
+    function tokenize(code) {
+        let tokens = [];
+        // Separem el text en línies
+        const lines = code.split("\n");
+        // Recorrem cada línia
+        for (let i = 0; i < lines.length; i++) {
+            // Número de línia (comença a 1)
+            const lineNumber = i + 1;
+            // Eliminem comentaris:
+            // tot el que hi ha després de // fins al final de la línia
+            let line = stripLineComment(lines[i]);
+            // Separem els >
+            line = line.replace(/>/g, " > ");
+            // Separem els tokens
+            let lineTokens = line.split(/\s+/);
+            // Eliminem tokens buits
+            lineTokens = lineTokens.filter(token => token !== "");
+            // Afegim el token amb el seu número de línia
+            for (let token of lineTokens) {
+                tokens.push({
+                    value: token,
+                    line: lineNumber,
+                    consumed: false
+                });
+            }
+        }
+        return tokens;
+    }
+
+    //detectar paràmetres globals
+    function isGlobalParam(token) {
+        return GLOBAL_PARAMS.has(token);
+    }
+
+    //detectar modificadors de paràmetre
+        function isParamModifier(token) {
+            return PARAM_MODIFIERS.has(token);
+        }
+
+    //detectar parametre de track
+    function isTrackParam(token) {
+        return TRACK_PARAMS.has(token);
+    }
+
+    //detectar effect types
+    function isEffectType(token) {
+        return EFFECT_TYPES.has(token);
+    }
+
+    //detectar effect params
+    function isEffectParam(token) {
+        for (const effect in EFFECT_PARAMS) {
+            if (EFFECT_PARAMS[effect].has(token)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //detecta valors numerics
+    function isNumericValue(value) {
+        return (
+            value !== "" &&
+            !Number.isNaN(
+                Number(value)
+            )
+        );
+    }
+
+    //obte la regla de inici del parametre
+    function getValueRule(keyword) {
+
+        return (
+            VALUE_RULES[keyword] || {
+                numericOnly: true,
+                maxValues: Infinity
+            }
+        );
+    }
+
+    //Per gestionar multivalors despres d'un token
+    function consumeValuesUntilKeyword(startPosition, keyword){
+        let values = [];
+        // Comencem pel token següent al paràmetre
+        let position = startPosition + 1;
+        //Consumir tokens
+        const startLine =
+            parser.tokens[startPosition].line;
+        //verificar regla del parametre
+        const rule =
+            getValueRule(keyword);
+        // Recorrem els tokens següents
+        while (position < parser.tokens.length) {
+            const token = parser.tokens[position];
+
+            // Els valors d'un paràmetre pertanyen
+            // a la mateixa línia que el paràmetre.
+            if (token.line !== startLine) {
+                break;
+            }
+            // Si trobem un GLOBAL_PARAM, parem
+            if (isGlobalParam(token.value)) {
+                break;
+            }
+            // Si trobem un modificador
+            // del paràmetre anterior, parem
+            if (isParamModifier(token.value)) {
+                break;
+            }
+            // Si trobem un TRACK_PARAM, parem
+            if (isTrackParam(token.value)) {
+                break;
+            }
+            // Si trobem un EFFECT_TYPE, parem
+            if (isEffectType(token.value)) {
+                break;
+            }
+            // Si trobem un EFFECT_PARAM, parem
+            if (isEffectParam(token.value)) {
+                break;
+            }
+
+            // Si el següent token és >, és un TRACK HEADER
+            const nextToken = parser.tokens[position + 1];
+            if (nextToken && nextToken.value === ">") {
+                break;
+            }
+
+            // Si trobem un >, parem
+            if (token.value === ">") {
+                break;
+            }
+
+            // Un paràmetre numèric NO consumeix paraules.
+            if (rule.numericOnly && !isNumericValue( token.value )) {
+                break;
+            }
+
+            // Guardem el valor
+            token.consumed = true;
+            values.push(token.value);
+
+            // source, loop, etc. (parametres q nomes accepten 1 valor)
+            // poden limitar el nombre de valors acceptats
+            if (values.length >= rule.maxValues) {
+                break;
+            }               
+
+            // Passem al següent token
+            position++;
+        }
+        return values;
+    }
+
+    function consumeSingleValue(startPosition) {
+        const startToken =
+            parser.tokens[startPosition];
+        const valueToken =
+            parser.tokens[startPosition + 1];
+        if (!valueToken) {
+            return [];
+        }
+        // El valor ha d'estar
+        // a la mateixa línia
+        if (
+            valueToken.line !==
+            startToken.line
+        ) {
+            return [];
+        }
+        // No consumir una keyword
+        if (
+            isGlobalParam(valueToken.value) ||
+            isParamModifier(valueToken.value) ||
+            isTrackParam(valueToken.value) ||
+            isEffectType(valueToken.value) ||
+            isEffectParam(valueToken.value) ||
+            valueToken.value === ">"
+        ) {
+            return [];
+        }
+        valueToken.consumed = true;
+        return [
+            valueToken.value
+        ];
+    }    
+
+    //Warnings del parser
+    function addWarning(message, line){
+        parser.warnings.push({
+            message,
+            line
+        });
+    }
+
+    //Parser
+    const parser = {
+        tokens: [],
+        position: 0,
+        currentId: null,
+        currentEffect: null,
+        currentTarget: null,
+        tracks: [],
+        globals: {},
+        directives: [],
+        warnings: [],
+
+        peek() {
+            return this.tokens[this.position];
+        },
+
+        next() {
+            const token = this.tokens[this.position];
+            this.position++;
+            return token;
+        },
+
+        //end of funcion
+        eof() {
+            return this.position >= this.tokens.length;
+        }
+    };
+
+    function parse() {
+        while (!parser.eof()) {
+            const token = parser.peek();
+            if (token.consumed) {
+                parser.next();
+                continue;
+            }
+            // Mirem el següent token sense consumir-lo
+            const nextToken = parser.tokens[parser.position + 1];
+
+            // Comprova si tenim un repo
+            if (token.value === "repo") {
+                token.consumed = true;
+                parser.currentTarget = null;
+                const valueToken =
+                    parser.tokens[
+                        parser.position + 1
+                    ];
+                if (
+                    valueToken &&
+                    valueToken.line ===
+                        token.line
+                ) {
+                    valueToken.consumed = true;
+                    parser.directives.push({
+                        type: "repo",
+                        value:
+                            removeQuotes(
+                                valueToken.value
+                            ),
+                        line: token.line
+                    });
+                }
+                parser.next();
+                continue;
+            }
+
+            // Comprova si tenim un import
+            if (token.value === "import") {
+                token.consumed = true;
+                parser.currentTarget = null;
+                const nameToken =
+                    parser.tokens[parser.position + 1];
+                const urlToken =
+                    parser.tokens[parser.position + 2];
+                if (
+                    nameToken &&
+                    urlToken &&
+                    nameToken.line === token.line &&
+                    urlToken.line === token.line
+                ) {
+                    nameToken.consumed = true;
+                    urlToken.consumed = true;
+
+                    parser.directives.push({
+                        type: "import",
+                        name: nameToken.value,
+                        url:
+                            removeQuotes(urlToken.value),
+                        line: token.line
+                    });
+                }
+                parser.next();
+                continue;
+            }
+
+
+            // Comprova si tenim un paràmetre global
+            if (isGlobalParam(token.value)) {
+                token.consumed = true;
+                parser.currentTarget = null;
+                const values =
+                    consumeValuesUntilKeyword(
+                        parser.position,
+                        token.value
+                    );
+                parser.globals[token.value] =
+                    values;
+                parser.next();
+                continue;
+            }
+
+            // Comprovem si tenim: trackheader (>)
+            if (nextToken && nextToken.value === ">") {
+                token.consumed = true;
+                nextToken.consumed = true;
+                parser.currentId = token.value;
+
+                parser.currentEffect = null;
+                parser.currentTarget = null;       
+
+                parser.tracks.push({
+                    id: parser.currentId,
+                    line: token.line,
+                    params: {},
+                    modifiers: {},
+                    effects: []
+                });
+                
+                parser.next();
+                continue;
+            }
+
+            // Comprova si tenim: track param
+            if (isTrackParam(token.value)) {
+                token.consumed = true;
+                const value = parser.tokens[parser.position + 1];
+                const currentTrack = parser.tracks.at(-1);
+                if (value) {
+                    const values =
+                        consumeValuesUntilKeyword(
+                            parser.position,
+                            token.value
+                        );
+                    currentTrack.params[token.value] =
+                        values;
+
+                    // source i loop no són
+                    // paràmetres seqüenciables
+                    if (
+                        token.value === "source" ||
+                        token.value === "loop"
+                    ) {
+                        parser.currentTarget = null;
+                    }
+                    else {
+                        parser.currentTarget = {
+                            kind: "trackParam",
+                            track: currentTrack,
+                            key: token.value
+                        };
+                    }
+                }
+                parser.next();
+                continue;
+            }
+
+            //comprova si tenim: effect type
+            if (isEffectType(token.value)) {
+                token.consumed = true;
+                const currentTrack = parser.tracks.at(-1);
+                parser.currentEffect = {
+                    type: token.value,
+                    values:
+                        consumeValuesUntilKeyword(
+                            parser.position,
+                            token.value
+                        ),
+                    modifiers: {},
+                    paramModifiers: {}
+                };
+                parser.currentTarget = {
+                    kind: "effectValue",
+                    effect: parser.currentEffect
+                };
+                currentTrack.effects.push(
+                    parser.currentEffect
+                );
+                parser.next();
+                continue;
+            }
+
+            //comprovar si tenim: effect params
+            if (isEffectParam(token.value)) {
+                token.consumed = true;
+                parser.currentEffect[token.value] =
+                    consumeValuesUntilKeyword(
+                        parser.position, 
+                        token.value);
+                parser.currentTarget = {
+                    kind: "effectParam",
+                    effect: parser.currentEffect,
+                    key: token.value
+                };
+                parser.next();
+                continue;
+            }
+
+            // Modificador aplicat
+            // al paràmetre anterior
+            if (isParamModifier(token.value)) {
+                token.consumed = true;
+                const values = consumeSingleValue(parser.position);
+                const value = values[0];
+
+                // rotate necessita
+                // un paràmetre anterior
+                if (!parser.currentTarget) {
+                    addWarning(
+                        `rotate has no parameter to modify`,
+                        token.line
+                    );
+                    parser.next();
+                    continue;
+                }
+
+                // rotate ha de ser enter
+                if (
+                    value === undefined ||
+                    !Number.isInteger(
+                        Number(value)
+                    )
+                ) {
+                    addWarning(
+                        `rotate expects an integer`,
+                        token.line
+                    );
+                    parser.next();
+                    continue;
+                }
+                const target =
+                    parser.currentTarget;
+
+                // TRACK PARAM
+                if (
+                    target.kind ===
+                    "trackParam"
+                ) {
+                    if (!target.track.modifiers[target.key]
+                    ) {
+                        target.track.modifiers[target.key] = {};
+                    }
+
+                    target.track.modifiers[target.key].rotate =values;
+                }
+
+                // EFFECT TYPE VALUE
+                else if (
+                    target.kind ===
+                    "effectValue"
+                ) {
+                    target.effect.modifiers.rotate =values;
+                }
+
+                // EFFECT PARAM
+                else if (
+                    target.kind ===
+                    "effectParam"
+                ) {
+                    if (
+                        !target.effect.paramModifiers[target.key]
+                    ) {
+                        target.effect.paramModifiers[target.key] = {};
+                    }
+                    target.effect.paramModifiers[target.key].rotate = values;
+                }
+                parser.next();
+                continue;
+            }
+
+            // Si queda un identificador no consumit
+            // dins d'un track, el considerem
+            // un paràmetre desconegut.
+            if (
+                parser.currentId &&
+                !token.consumed &&
+                /^[a-zA-Z_]\w*$/.test(token.value)
+            ) {
+                addWarning(
+                    `Unknown parameter '${token.value}'`,
+                    token.line
+                );
+            }
+            
+            // Consumim el token actual
+            parser.next();
+        }
+    }
+    ///////////////////
+
+    //FUNCIÓ TEST PARSER (TEMPORAL)
+    window.testParser = function(){
+        const code = editor.getValue();
+        parser.tokens = tokenize(code);
+        parser.position = 0;
+        parser.currentId = null;
+        parser.currentEffect = null;
+        parser.currentTarget = null;
+        parser.tracks = [];
+        parser.globals = {};
+        parser.directives = [];
+        parser.warnings = [];
+        parse();
+        console.log(parser.tracks);
+    }
+
+    // Converteix només els TRACK PARAMS de l'AST
+    // al format que consumeix actualment el motor.
+    // TEMPORAL durant la integració.
+    function compileTrackParams(track) {
+        const params = {};
+        for (const [key, values] of Object.entries(track.params)) {
+            params[key] = values.join(" ");
+        }
+        return params;
+    }
+
+    // Adaptació TEMPORAL de l'AST al motor actual.
+    // Manté els TRACK_PARAMS i converteix el primer delay
+    // al format pla que encara espera el motor.
+    function compileTrackForEngine(track) {
+        const params =
+            compileTrackParams(track);
+
+        // TEMPORAL:
+        // metadata dels modificadors de TRACK_PARAMS
+        // necessària mentre el motor encara
+        // consumeix params plans
+        params.__trackModifiers =
+            structuredClone(
+                track.modifiers || {}
+            );
+
+        // TEMPORAL:
+        // conservem també la metadata estructurada
+        // dels efectes perquè el motor pugui
+        // consultar els seus modifiers
+        params.__effectsMeta =
+            track.effects.map(
+                effect => ({
+                    type: effect.type,
+
+                    modifiers:
+                        structuredClone(
+                            effect.modifiers || {}
+                        ),
+
+                    paramModifiers:
+                        structuredClone(
+                            effect.paramModifiers || {}
+                        )
+                })
+            );
+
+        // TEMPORAL:
+        // el motor actual només pot gestionar un delay per track
+        const delayEffect =
+            track.effects.find(
+                effect => effect.type === "delay"
+            );
+        if (delayEffect) {
+            // delay 0.5
+            params.delay =
+                delayEffect.values.join(" ");
+            // dt, dt_glide, dfb...
+            for (
+                const [key, values]
+                of Object.entries(delayEffect)
+            ) {
+                // "values" correspon al valor
+                // principal del delay i ja s'ha
+                // compilat com params.delay
+                if (key === "values") {
+                    continue;
+                }
+                // Només aplanem propietats que
+                // siguin arrays de valors.
+                // Això exclou type, modifiers
+                // i paramModifiers.
+                if (!Array.isArray(values)) {
+                    continue;
+                }
+                params[key] =
+                    values.join(" ");
+            }
+        }
+        return params;
+    }
+   
     // 6. EXECUCIÓ (Amb el reset de volum corregit)
     async function execute() {
         console.log("Comandament EXECUTE rebut");
@@ -935,241 +1699,159 @@ naryInput.init();
 
         reload(); //no fem stop sino reload perque no pari el rellotge intern
         
+        // Eliminar params de tracks
+        // de l'execució anterior
+        nary.fluxParams = {};
+
         Tone.getDestination().volume.value = 0; 
         
+
         const code = editor.getValue();
-        const lines = code.split('\n');
+        
+        ////////////////////
+        // PARSER PER TOKENS
+        ////////////////////
+        parser.tokens = tokenize(code);
+        parser.position = 0;
+        parser.currentId = null;
+        parser.currentEffect = null;
+        parser.currentTarget = null;
+        parser.tracks = [];
+        parser.globals = {};
+        parser.directives = [];
+        parser.warnings = [];
+        parse();
 
-        const tokenizedLines = lines.map((line, index) => ({
-            raw: line,
-            trimmed: line.trim(),
-            line: index + 1,
-            tokens: line.trim()
-                ? line.trim().split(/\s+/)
-                : []
-        }));
-                
-        let currentId = null;
-        let params = {};
-        let effects = [];
-        //context pel parser (saber si estem dins d'un filtre)
-        let currentContext = null;
-        let currentEffect = null;
+        // Aplicar els paràmetres globals
+        // detectats pel parser nou
+        if (
+            parser.globals.decay?.[0] !== undefined
+        ) {
+            window.fx.decay =
+                parseFloat(
+                    parser.globals.decay[0]
+                );
+        }
+        if (
+            parser.globals.predelay?.[0] !== undefined
+        ) {
+            window.fx.predelay =
+                Math.max(
+                    0,
+                    Math.min(
+                        parseFloat(
+                            parser.globals.predelay[0]
+                        ),
+                        300
+                    )
+                );
+        }
 
-        ////////
-        //PARSER
-        ////////
-        tokenizedLines.forEach(entry => {
-
-            const line = entry.raw;
-            const trimmed = entry.trimmed;
-            const tokens = entry.tokens;
-            const index = entry.line - 1;
-
-            //commentar amb //
-            if (!trimmed || trimmed.startsWith('//')) 
-                return;
-
-            //Reconeixer variables globals (room i decay del reverb)
-            const globalMatch =
-                trimmed.match(/^(\w+)\s+([0-9.]+)$/);
-            if (
-                globalMatch &&
-                !line.includes('>') &&
-                !line.startsWith(' ') &&
-                !line.startsWith('\t')
-            ) {
-                const key = globalMatch[1];
-                const value = parseFloat(globalMatch[2]);
-                if (key === "decay")
-                    window.fx.decay = value;
-                if (key === "predelay")
-                    window.fx.predelay = Math.max(0, Math.min(value, 300));
-                return;
-            }
-
-            //importar samples 
-            const repoMatch = trimmed.match(
-                /^repo\s+"([^"]+)"$/
+        // Passar els warnings del parser nou
+        // al sistema de log de N-ary
+        for (const warning of parser.warnings) {
+            statusWarning(
+                warning.message,
+                warning.line
             );
-            if (repoMatch) {
-                window.repo = repoMatch[1];
-                return;
-            }
-            const importMatch = trimmed.match(
-                /^import\s+(\S+)\s+"([^"]+)"$/
+        }
+
+        // AST actual del codi executat
+        window.currentAST = structuredClone(parser.tracks);
+
+        // Eliminar barres de tracks que ja no existeixen
+        // en l'AST actual
+        const currentTrackIds =
+            new Set(
+                window.currentAST.map(
+                    track => track.id
+                )
             );
+        for (
+            const [id, widget]
+            of Object.entries(naryUI.widgets)
+        ) {
+            if (!currentTrackIds.has(id)) {
 
-            if (importMatch) {
-                const name = importMatch[1];
-                const url = importMatch[2];
-
-                window.samples[name] = window.repo
-                    ? `${window.repo}/${url}`
-                    : url;
-
-                console.log("Imported:", name);
-                return;
-                }            
-
-            if (line.includes('>')) {
-
-                if (currentId) {
-                    if (!params.source) {
-                        statusError(
-                            `Track "${currentId}" has no source`,
-                            index
-                        );
-                    }
-                    else if (!window.samples[params.source]) {
-                        statusError(
-                            `Sample "${params.source}" not found`,
-                            index
-                        );
-                    }
-                    params.effects = effects;
-                    nary.fluxParams[currentId] = {
-                        ...params,
-                        effects: [...effects]
-                    };
-                    nary.createFlux(currentId, params);
-                }
-
-                const parts = line.split('>');
-                currentId = parts[0].trim();
-
-                params = {};
-                effects = [];
-
-                //definir el context actual
-                currentContext = "track";
-                currentEffect = null;
-                
-                const inline = parts[1].trim().split(/\s+/);
-                for (let i = 0; i < inline.length; i += 2) {
-                    if (inline[i] && inline[i+1]) {
-                        const token = inline[i];
-                    
-                        // Valida si el paràmetre és correcte a la primera línia
-                        if (!PARAMS.has(token)) {
-                            statusWarning(`Unknown parameter '${token}'`, index + 1);
-                        }
-                        const value = inline[i+1];
-                        if (
-                            token === "rotate" &&
-                            !Number.isInteger(Number(value))
-                        ) {
-                            statusWarning(
-                                `rotate expects an integer. Using ${parseInt(value)}.`,
-                                index + 1
-                            );
-                        }
-                        params[token] = value;
-                        if (token === 'loop') {
-                            naryUI.durations[currentId] = parseFloat(inline[i+1]);
-                        }
-                    }
-                }
-                
-                naryUI.injectBar(currentId, index);
-            } 
-            else if (currentId) {
-                // Ignora capçaleres de track (ja s'han processat abans)
-                if (line.includes(">")) {
-                    return;
-                }
-                // Canvi de context: comença un nou efecte
                 if (
-                    tokens.length === 1 &&
-                    EFFECT_TYPES.has(tokens[0])
+                    widget &&
+                    typeof widget.clear === "function"
                 ) {
-                    currentEffect = {
-                        type: tokens[0]
-                    };
-                    effects.push(currentEffect);
-                    currentContext = "effect";
-                    return;
+                    widget.clear();
                 }
-
-                let currentKey = null;
-                let values = [];
-                
-                for (const token of tokens) {
-                    if (PARAMS.has(token)) {
-
-                        if (currentKey) {
-                            const value = values.join(" ");
-                            if (
-                                currentContext === "effect" &&
-                                currentEffect
-                            ) {
-                                currentEffect[currentKey] = value;
-                            }
-                            else {
-                                params[currentKey] = value;
-                            }
-                        }
-
-                        currentKey = token;
-                        values = [];
-                    } else {
-                        //si en token no esta a la llista de funcions tira un warning a la consola 
-                        if (
-                            /^[a-zA-Z_]\w*$/.test(token) &&
-                            !PARAMS.has(token)
-                        ) {
-                            //warnings.push(
-                            statusWarning(
-                                `Unknown parameter'${token}'`,
-                                index + 1
-                            );
-                        }
-                        values.push(token);
-                    }
-                }
-                if (currentKey) {
-                    const value =
-                        values.join(" ");
-                    if (
-                        currentKey === "rotate" &&
-                        !Number.isInteger(Number(value))
-                    ) {
-                        statusWarning(
-                            `rotate expects an integer. Using ${parseInt(value)}.`,
-                            index + 1
-                        );
-                    }
-                    params[currentKey] = value;
+                delete naryUI.widgets[id];
+                if (naryUI.selectedId === id) {
+                    naryUI.selectedId = null;
                 }
             }
-        });
+        }
 
-        //error si no encaixa el nom del sample
-        if (currentId) {
+        // Crear les barres directament des de l'AST
+        for (const track of window.currentAST) {
+
+            const loopValue =
+                track.params.loop?.[0];
+
+            if (loopValue !== undefined) {
+                naryUI.durations[track.id] =
+                    parseFloat(loopValue);
+            }
+            naryUI.injectBar(
+                track.id,
+                track.line - 1
+            );
+        }
+
+        // Aplicar directives del parser
+        // respectant l'ordre del codi
+        for (
+            const directive
+            of parser.directives
+        ) {
+            // REPO
+            if (directive.type === "repo") {
+                window.repo = directive.value;
+                continue;
+            }
+
+            // IMPORT
+            if (directive.type === "import") {
+                window.samples[directive.name] =
+                    window.repo
+                        ? `${window.repo}/${directive.url}`
+                        : directive.url;
+                console.log("Imported:", directive.name);
+                continue;
+            }
+        }
+
+        // Crear els tracks del motor
+        // directament des de l'AST
+        for (const track of window.currentAST) {
+            const params =
+                compileTrackForEngine(track);
+            // Validar source
             if (!params.source) {
                 statusError(
-                    `Track "${currentId}" has no source`,
-                    lines.length
+                    `Track "${track.id}" has no source`,
+                    track.line
                 );
             }
             else if (!window.samples[params.source]) {
                 statusError(
                     `Sample "${params.source}" not found`,
-                    lines.length
+                    track.line
                 );
             }
-            params.effects = effects;
-
-            //al acabar un track es neteja el context
-            currentContext = null;
-            currentEffect = null;
-
-            nary.fluxParams[currentId] = {
-                ...params,
-                effects: [...effects]
+            // Params que consumeix actualment el motor
+            nary.fluxParams[track.id] = {
+                ...params
             };
-            console.log(effects); //verif temp
-            nary.createFlux(currentId, params); 
+            // Crear el flux
+            nary.createFlux(
+                track.id,
+                params
+            );
         }
 
         //a cada ctrl+enter revisa si valor de reverb ha canviat
@@ -1270,12 +1952,6 @@ naryInput.init();
         }
         
         window.activeLoops = {};
-
-        //elimina delays antics quan clico ctrl enter
-        // Object.values(window.trackFX).forEach(fx => {
-        //     fx.delay.dispose();
-        // });
-        // window.trackFX = {};
     }
 
     // Per si fas clic fora de l'editor, que els shortcuts funcionin igual
