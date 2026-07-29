@@ -65,7 +65,7 @@ There are two ways to use samples:
 
 ## Preloaded samples
 Use any of the samples already included in the project:
-| Fammily | Name of the sample |
+| Family | Name of the sample |
 | --- | :--- |
 | Percussion<sup>1</sup> | `kick`(x5), `snare`(x4), `hat`(x2), `clap`, `shaker`(x2) |
 | Instruments | `guitar`, `violin`, `piano`<sup>2</sup>|
