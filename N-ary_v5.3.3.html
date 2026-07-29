@@ -866,7 +866,7 @@ guit1 > source guitar loop 2
             }
 
             const container = document.createElement('div');
-            container.style.cssText = 'display: inline-block; margin-left: 15px; vertical-align: middle;';
+            container.style.cssText = 'display: inline-block; margin-left: 5px; vertical-align: middle;';
 
             const canvas = document.createElement('canvas');
             canvas.width = 300;
@@ -880,7 +880,8 @@ guit1 > source guitar loop 2
 
             this.widgets[id] = editor.addLineWidget(lineIndex, container, {
                 coverGutter: false,
-                noHScroll: true
+                noHScroll: true,
+                above: true
             });
 
             this.startAnimation(id, canvas);
