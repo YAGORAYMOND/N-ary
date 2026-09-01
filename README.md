@@ -32,13 +32,14 @@ Isard is a web-based environment where sounds are organized into playable struct
 - [License](#license)
 
 
-# Getting started:
+# Getting started
 
-## Installation/start/stop
-1. Download the `N-ary.html` file.
-2. Open it in any web browser.
-4. Press **`Ctrl + Enter`** to execute.
-5. Press **`Ctrl + .`** to stop.
+Use N-ary directly in your browser:
+
+https://nary.yagoraymond.cat/
+
+- **`Ctrl + Enter`** — execute
+- **`Ctrl + .`** — stop
 
 ## Basic structure
 Each track is defined as follows:
