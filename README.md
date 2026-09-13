@@ -19,6 +19,7 @@ Isard is a web-based environment where sounds are organized into playable struct
 - [Sample Controls](#sample-controls)
   - [Pitch](#pitch)
   - [Pitch(n)](#pitchn-tbd)
+  - [Gain](#gain)
   - [Length](#length)
 - [Global Effects](#global-effects)
   - [Reverb](#reverb)
@@ -114,6 +115,18 @@ inst > source guitar
   pitch(5) 0 1 2 4 5
 ```
 -->
+
+## Gain
+`gain` — Controls the amplitude of the track. (default=1)
+```
+drums > source kick loop 2
+ gain 0.5
+```
+Like other track parameters, gain can be sequenced:
+```
+drums > source guitar loop 4
+ gain 1 0.5 0.2 0.8
+```
 
 ## Length
 `len` — Sets the duration of each event in seconds.
