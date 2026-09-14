@@ -168,12 +168,15 @@ guitar > source guitar loop 4 lpf 800
 The cutoff remains at `800 Hz` throughout the loop.
 
 **Example 2:** Sequenced cutoff
+```
+drumloop > source boombap_20s loop 20 lpf 300 800 1500 6000
+```
+The loop is divided into four equal regions, so the cutoff changes every 5 seconds: `300 → 800 → 1500 → 6000 Hz`.
 
-```
-guitar > source guitar loop 2
-guitar_lpf > source guitar loop 2 
- lpf 200
-```
+Because the sample is still playing when the cutoff changes (region change), each new cutoff value changes the sound of that same ongoing sample.
+
+**Example 3:** Smooth transitions
+
 
 ## Delay
 Each track has its own delay effect.
