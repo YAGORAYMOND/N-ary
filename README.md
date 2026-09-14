@@ -87,9 +87,10 @@ Use any of the samples already included in the project:
  **(xN) indicates that there are N variants of this sample. The first variant has no number suffix (e.g. `kick`, `kick2`, `kick3`, ...).*
 
 **Third-party sample credits and usage terms:**
+
 <sub>
-<sup>1</sup> 99Sounds — drum samples, royalty-free for commercial and non-commercial use: https://99sounds.org/  
-<sup>2</sup> holizna / Freesound — drum loop, CC0: https://freesound.org/people/holizna/sounds/629139/  
+<sup>1</sup> 99Sounds — drum samples, royalty-free for commercial and non-commercial use: https://99sounds.org/  <br>
+<sup>2</sup> holizna / Freesound — drum loop, CC0: https://freesound.org/people/holizna/sounds/629139/  <br>
 <sup>3</sup> University of Iowa Musical Instrument Samples — piano sample, free to use without restrictions: https://theremin.music.uiowa.edu/mispiano.html
 </sub>
 
