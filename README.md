@@ -181,6 +181,16 @@ track > source choir loop 6 len 6 lpf 200 800 9000 lpf_glide 0.8
 ```
 `lpf_glide 0.8` makes each cutoff transition take 0.8 seconds instead of changing almost immediately.
 
+**Exemple 4:** Sequenced glide
+```
+track > source choir loop 5 len 5 
+lpf 300 9000 300 9000 300 9000 300 9000 300 9000 300 9000 300 9000 300 9000 300 9000 300 9000
+lpf_glide 0.05 0.3 3
+```
+`lpf_glide` can also be modulated. This allows the speed of the cutoff transitions to evolve independently across the loop.
+
+As with other sequenced parameters, functions such as rotate can also be applied to lpf and lpf_glide (*e.g.* `lpf_glide 0.05 0.3 3 rotate 1`)
+
 ## Delay
 Each track has its own delay effect.
 
