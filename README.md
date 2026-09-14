@@ -169,14 +169,17 @@ The cutoff remains at `800 Hz` throughout the loop.
 
 **Example 2:** Sequenced cutoff
 ```
-drumloop > source boombap_20s loop 20 lpf 300 800 1500 6000
+track > source choir loop 6 len 6 lpf 200 800 9000
 ```
-The loop is divided into four equal regions, so the cutoff changes every 5 seconds: `300 → 800 → 1500 → 6000 Hz`.
+The loop is divided into three equal regions, so the cutoff changes every 2 seconds: `200 → 800 → 9000 Hz`.
 
 Because the sample is still playing when the cutoff changes (region change), each new cutoff value changes the sound of that same ongoing sample.
 
 **Example 3:** Smooth transitions
-
+```
+track > source choir loop 6 len 6 lpf 200 800 9000 lpf_glide 0.8
+```
+`lpf_glide 0.8` makes each cutoff transition take 0.8 seconds instead of changing almost immediately.
 
 ## Delay
 Each track has its own delay effect.
