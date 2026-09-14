@@ -1,6 +1,9 @@
 
 
 # N-ary | An environment for playable sounds
+
+<img width="300" height="300" alt="Bo_2 1" src="https://github.com/user-attachments/assets/c3d93ad2-d051-45e1-9476-f1c2ca9b0455" />
+
 <!--
 TO DO WITH SHORT EXPLANATION OF THE FILOSOPHY
 Isard is the Catalan name for the Pyrenean chamois, whose agility, balance and ability to navigate rugged terrain mirror the qualities of live coding and inspired the name of this project.
@@ -13,23 +16,27 @@ Isard is a web-based environment where sounds are organized into playable struct
 ## Contents
 
 - [Getting Started](#getting-started)
+  
 - [Loading Samples](#loading-samples)
   - [Preloaded Samples](#preloaded-samples)
   - [Import Your Own Samples](#import-your-own-samples)
+    
 - [Sample Controls](#sample-controls)
   - [Pitch](#pitch)
-  - [Pitch(n)](#pitchn-tbd)
   - [Gain](#gain)
   - [Length](#length)
-- [Global Effects](#global-effects)
-  - [Reverb](#reverb)
-- [Local Effects](#local-effects)
+  
+- [Effects](#effects)
   - [Low-pass Filter](#low-pass-filter)
   - [Delay](#delay)
+  - [Reverb](#reverb)
+    
 - [Functions](#functions)
   - [Sequencing](#sequencing)
   - [Rotate](#rotate)
+    
 - [Credits](#credits)
+  
 - [License](#license)
 
 
@@ -70,6 +77,7 @@ Use any of the samples already included in the project:
 | Family | Name of the sample |
 | --- | :--- |
 | Percussion<sup>1</sup> | `kick`(x5), `snare`(x4), `hat`(x2), `clap`, `shaker`(x2) |
+| Drum Loops | `boombap_20s` |
 | Instruments | `guitar`, `violin`, `piano`<sup>2</sup>|
 | Vocals | `choir`, `uhhh` |
 | Synths  | TBD |
@@ -135,41 +143,37 @@ voice > source uhhh
   len 0.5
 ```
 
-# Global Effects
-Global effects use shared buses. This means that all tracks can send signal to the same effect instance.
-## Reverb
-All tracks share the same reverb space (bus).
+# Effects
+Effects in N-ary behave like pedals in a physical effects chain.
 
-Global parameters:
-  - `decay` — Length of the reverb tail in seconds. (default: `4`)
-  - `predelay` — Delay between the dry sound and the start of the reverb in milliseconds. (range=0-300, default=0)
+Each track has its own ordered effect chain. This implies:
 
-Track parameter: 
-  - `reverb` — Amount of signal sent to the reverb bus (dry/wet). (range=0-1, default=0)
+1. Effects can be freely chained, including multiple instances of the same effect.
+2. Each effect instance remains independent and has its own parameters.
+3. Effects process all audio passing through the track, including sounds that were triggered before an effect parameter changed.
+4. Effects are connected in the same order in which they are written, so order matters. `Delay 1 → Reverb → Delay 2` is not equivalent to `Delay 1 → Delay 2 → Reverb`.
 
-```
-decay 10
-predelay 300
-
-drums > source kick loop 2
- reverb 0.4
-voice > source choir loop 10
- len 2
- reverb 0.8
-```
-
-# Local Effects
-Effects individuallyl applied to each track.
 
 ## Low-pass Filter
-`lpf` — Low-pass filter cutoff frequency in Hz. By default no filter is applied.
+`lpf` — Low-pass filter cutoff frequency in Hz. Frequencies above the cutoff are progressively attenuated. If no `lpf` is added, the signal is not filtered.
+
+**Parameters:**
+- `lpf` — Cutoff frequency in Hz. (range=`20–22050`)
+- `lpf_glide` —  Time in seconds used to smoothly transition between lpf values. (default=`0.03`)
+
+**Example 1:** Fixed cutoff
+```
+guitar > source guitar loop 4 lpf 800
+```
+The cutoff remains at `800 Hz` throughout the loop.
+
+**Example 2:** Sequenced cutoff
 
 ```
 guitar > source guitar loop 2
 guitar_lpf > source guitar loop 2 
  lpf 200
 ```
-
 
 ## Delay
 Each track has its own delay effect.
@@ -196,6 +200,32 @@ drum > source snare2 loop 4
  dt 100 200 400 800
  dfb 0.2 0.4 0.6 0.8
 ```
+
+## Reverb
+All tracks share the same reverb space (bus).
+
+Global parameters:
+  - `decay` — Length of the reverb tail in seconds. (default: `4`)
+  - `predelay` — Delay between the dry sound and the start of the reverb in milliseconds. (range=0-300, default=0)
+
+Track parameter: 
+  - `reverb` — Amount of signal sent to the reverb bus (dry/wet). (range=0-1, default=0)
+
+```
+decay 10
+predelay 300
+
+drums > source kick loop 2
+ reverb 0.4
+voice > source choir loop 10
+ len 2
+ reverb 0.8
+```
+
+
+
+
+
 
 # Functions
 ## Sequencing
