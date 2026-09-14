@@ -77,18 +77,21 @@ Use any of the samples already included in the project:
 | Family | Name of the sample |
 | --- | :--- |
 | Percussion<sup>1</sup> | `kick`(x5), `snare`(x4), `hat`(x2), `clap`, `shaker`(x2) |
-| Drum Loops | `boombap_20s` |
-| Instruments | `guitar`, `violin`, `piano`<sup>2</sup>|
+| Drum Loops | `boombap_20s`<sup>2</sup> |
+| Instruments | `guitar`, `violin`, `piano`<sup>3</sup>|
 | Vocals | `choir`, `uhhh` |
 | Synths  | TBD |
 | Textures | `pink`, `vinyl`, `rain`, `conversation`, `birds`|
 | Pads | `field_c`, `city_c` |
 
- *<sup>1</sup>These drum samples were sourced from 99Sounds: https://99sounds.org/*
- 
- *<sup>2</sup>This piano sample was sourced from: https://theremin.music.uiowa.edu/mispiano.html*
- 
  **(xN) indicates that there are N variants of this sample. The first variant has no number suffix (e.g. `kick`, `kick2`, `kick3`, ...).*
+
+**Third-party sample credits and usage terms:**
+<sub>
+<sup>1</sup> 99Sounds — drum samples, royalty-free for commercial and non-commercial use: https://99sounds.org/  
+<sup>2</sup> holizna / Freesound — drum loop, CC0: https://freesound.org/people/holizna/sounds/629139/  
+<sup>3</sup> University of Iowa Musical Instrument Samples — piano sample, free to use without restrictions: https://theremin.music.uiowa.edu/mispiano.html
+</sub>
 
 ## Import your own samples
 **Way 1**: Multiple samples from a same repo:
