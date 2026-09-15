@@ -25,16 +25,20 @@ Isard is a web-based environment where sounds are organized into playable struct
   - [Pitch](#pitch)
   - [Gain](#gain)
   - [Length](#length)
+ 
+- [Functions](#functions)
+  - [Sequencing](#sequencing)
+  - [Rotate](#rotate)
   
 - [Effects](#effects)
   - [Low-pass Filter](#low-pass-filter)
   - [Delay](#delay)
   - [Reverb](#reverb)
-    
-- [Functions](#functions)
-  - [Sequencing](#sequencing)
-  - [Rotate](#rotate)
-    
+
+- [Techniques](#techniques)
+  - [Doppler Pitch Shifting](#doppler-pitch-shifting)
+  - [Microlooping](#microlooping)
+
 - [Credits](#credits)
   
 - [License](#license)
@@ -147,6 +151,64 @@ voice > source uhhh
   len 0.5
 ```
 
+
+# Functions
+## Sequencing
+
+When multiple values are provided for a parameter, the loop is divided into equal regions.
+
+Events inherit the value of the region in which they occur.
+
+> pitch 0 3 7 12
+
+creates 4 equal regions:
+
+> | 0 | 3 | 7 | 12 |
+
+The same applies to any parameter:
+
+```
+guitar > source guitar loop 4
+pitch 0 3 7 12
+lpf 500 1000 4000 12000
+reverb 0 0.2 0.5 1
+```
+
+Rather than defining sequences of events, N-ary defines regions in time. Multiple parameter regions combine to create sonic territories across the loop timeline.
+
+## Rotate
+`rotate` — Circularly shifts the values of the immediately preceding sequenced parameter by a fixed number of positions after each completed loop.
+
+Positive values rotate forward, negative values rotate backward.
+
+```
+guitar > source guitar loop 4
+pitch 0 3 7 12 rotate 1
+```
+This produces the following loops in pitch:
+
+  > Loop 1: | 0  | 3  | 7  | 12 |  
+    Loop 2: | 3  | 7  | 12 | 0  |  
+    Loop 3: | 7  | 12 | 0  | 3  |  
+    Loop 4: | 12 | 0  | 3  | 7  |  
+    Loop 5 = Loop 1  
+
+`rotate` applies only to the parameter immediately preceding it. Different sequenced parameters can therefore rotate independently.
+
+```
+guitar > source guitar loop 4
+pitch 0 3 7 12 rotate 1
+reverb 0 0.2 0.5 1 rotate -1
+```
+Here, `pitch` rotates forward by one position per loop, while `reverb` rotates backward by one position per loop.
+
+Negative values rotate in the opposite direction:
+
+```
+guitar > source guitar loop 4
+pitch 0 3 7 12 rotate -1
+```
+
 # Effects
 Effects in N-ary behave like pedals in a physical effects chain.
 
@@ -228,11 +290,27 @@ track > source zen loop 6
 `dt_glide 0.8` makes each transition between delay times take 0.8 seconds.
 This smooths the Doppler-like pitch shift produced when `dt` changes.
 
+
+
+TO DO:
 Exemple 4: combinar sequenciacio de tots els parametres amb n diferents de valors i rotate
 Exemple 5: encadenar varios delays
 Exemple 6: aconseguir microtuning https://www.youtube.com/watch?v=78wMNdnCBs8&list=LL&index=22
 
-### Doppler pitch shifting
+```
+decay 10
+predelay 300
+
+drums > source kick loop 2
+ reverb 0.4
+voice > source choir loop 10
+ len 2
+ reverb 0.8
+```
+
+
+# Techniques
+## Doppler Pitch Shifting
 Changing `dt` while delayed audio is sounding produces a Doppler-like pitch shift. Decreasing `dt` shifts the sound upwards; increasing it shifts the sound downwards.
 
 The resulting interval **depends on the speed of the delay-time change** , not on the original note. The same transition can therefore shift different source notes by approximately the same musical interval.
@@ -287,78 +365,8 @@ Global parameters:
 Track parameter: 
   - `reverb` — Amount of signal sent to the reverb bus (dry/wet). (range=0-1, default=0)
 
-```
-decay 10
-predelay 300
 
-drums > source kick loop 2
- reverb 0.4
-voice > source choir loop 10
- len 2
- reverb 0.8
-```
-
-
-
-
-
-
-# Functions
-## Sequencing
-
-When multiple values are provided for a parameter, the loop is divided into equal regions.
-
-Events inherit the value of the region in which they occur.
-
-> pitch 0 3 7 12
-
-creates 4 equal regions:
-
-> | 0 | 3 | 7 | 12 |
-
-The same applies to any parameter:
-
-```
-guitar > source guitar loop 4
-pitch 0 3 7 12
-lpf 500 1000 4000 12000
-reverb 0 0.2 0.5 1
-```
-
-Rather than defining sequences of events, N-ary defines regions in time. Multiple parameter regions combine to create sonic territories across the loop timeline.
-
-## Rotate
-`rotate` — Circularly shifts the values of the immediately preceding sequenced parameter by a fixed number of positions after each completed loop.
-
-Positive values rotate forward, negative values rotate backward.
-
-```
-guitar > source guitar loop 4
-pitch 0 3 7 12 rotate 1
-```
-This produces the following loops in pitch:
-
-  > Loop 1: | 0  | 3  | 7  | 12 |  
-    Loop 2: | 3  | 7  | 12 | 0  |  
-    Loop 3: | 7  | 12 | 0  | 3  |  
-    Loop 4: | 12 | 0  | 3  | 7  |  
-    Loop 5 = Loop 1  
-
-`rotate` applies only to the parameter immediately preceding it. Different sequenced parameters can therefore rotate independently.
-
-```
-guitar > source guitar loop 4
-pitch 0 3 7 12 rotate 1
-reverb 0 0.2 0.5 1 rotate -1
-```
-Here, `pitch` rotates forward by one position per loop, while `reverb` rotates backward by one position per loop.
-
-Negative values rotate in the opposite direction:
-
-```
-guitar > source guitar loop 4
-pitch 0 3 7 12 rotate -1
-```
+## Microlooping
 
 
 # Credits
