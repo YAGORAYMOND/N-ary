@@ -243,6 +243,23 @@ For a desired interval of (n) semitones:
 dt_{glide} = \frac{\Delta dt}{1 - 2^{n/12}}
 ]
 
+where (\Delta dt = dt_{new} - dt_{old}). In N-ary, divide (\Delta dt) by 1000 because dt is expressed in milliseconds and dt_glide in seconds.
+
+The following table summarises approximate dt changes required to obtain common musical intervals for different dt_glide values:
+
+| Interval | `dt_glide 0.1` | `dt_glide 0.2` | `dt_glide 0.4` | `dt_glide 0.8` |
+| --- | ---: | ---: | ---: | ---: |
+| +12 st · octave | `−100 ms` | `−200 ms` | `−400 ms` | `−800 ms` |
+| +7 st · perfect fifth | `−50 ms` | `−100 ms` | `−199 ms` | `−399 ms` |
+| +5 st · perfect fourth | `−33 ms` | `−67 ms` | `−134 ms` | `−268 ms` |
+| +4 st · major third | `−26 ms` | `−52 ms` | `−104 ms` | `−208 ms` |
+| +3 st · minor third | `−19 ms` | `−38 ms` | `−76 ms` | `−151 ms` |
+| −3 st · minor third | `+16 ms` | `+32 ms` | `+64 ms` | `+127 ms` |
+| −4 st · major third | `+21 ms` | `+41 ms` | `+83 ms` | `+165 ms` |
+| −5 st · perfect fourth | `+25 ms` | `+50 ms` | `+100 ms` | `+201 ms` |
+| −7 st · perfect fifth | `+33 ms` | `+67 ms` | `+133 ms` | `+266 ms` |
+| −12 st · octave | `+50 ms` | `+100 ms` | `+200 ms` | `+400 ms` |
+
 
 
 ```
