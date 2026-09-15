@@ -82,7 +82,7 @@ Use any of the samples already included in the project:
 | Vocals | `choir`, `uhhh` |
 | Synths  | TBD |
 | Textures | `pink`, `vinyl`, `rain`, `conversation`, `birds`|
-| Pads | `field_c`, `city_c` |
+| Pads | `field_c`, `city_c`, `zen`, `buzz` |
 
  **(xN) indicates that there are N variants of this sample. The first variant has no number suffix (e.g. `kick`, `kick2`, `kick3`, ...).*
 
