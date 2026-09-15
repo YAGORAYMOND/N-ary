@@ -239,13 +239,13 @@ The resulting interval **depends on the speed of the delay-time change** , not o
 
 For a desired interval of (n) semitones:
 
-[
+$$
 dt_{glide} = \frac{\Delta dt}{1 - 2^{n/12}}
-]
+$$
 
-where (\Delta dt = dt_{new} - dt_{old}). In N-ary, divide (\Delta dt) by 1000 because dt is expressed in milliseconds and dt_glide in seconds.
+where $\Delta dt = dt_{new} - dt_{old}$. In N-ary, divide $\Delta dt$ by 1000 because `dt` is expressed in milliseconds and `dt_glide` in seconds.
 
-The following table summarises approximate dt changes required to obtain common musical intervals for different dt_glide values:
+The following table summarises approximate `dt` changes required to obtain common musical intervals for different `dt_glide` values:
 
 | Interval | `dt_glide 0.1` | `dt_glide 0.2` | `dt_glide 0.4` | `dt_glide 0.8` |
 | --- | ---: | ---: | ---: | ---: |
@@ -261,6 +261,7 @@ The following table summarises approximate dt changes required to obtain common 
 | −12 st · octave | `+50 ms` | `+100 ms` | `+200 ms` | `+400 ms` |
 
 
+For example, with `dt_glide 0.4`, moving from `dt 400` to approximately `dt 266` (−134 ms) produces a perfect fifth upwards:
 
 ```
 drum > source snare2 loop 4
