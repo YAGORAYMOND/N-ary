@@ -237,13 +237,17 @@ Changing `dt` while delayed audio is sounding produces a Doppler-like pitch shif
 
 The resulting interval **depends on the speed of the delay-time change** , not on the original note. The same transition can therefore shift different source notes by approximately the same musical interval.
 
-For a desired interval of (n) semitones:
+To calculate the required change in delay time:
 
 $$
-dt_{glide} = \frac{\Delta dt}{1 - 2^{n/12}}
+{\Delta dt} = \frac{1 - 2^{n/12}}dt_{glide}
 $$
 
-where $\Delta dt = dt_{new} - dt_{old}$. In N-ary, divide $\Delta dt$ by 1000 because `dt` is expressed in milliseconds and `dt_glide` in seconds.
+where:
+
+- $\Delta dt = dt_{new} - dt_{old}$, in milliseconds.
+- $dt_{glide}$ is the transition time in seconds.
+- $n$ is the desired interval in semitones. Positive values shift upwards; negative values shift downwards.
 
 The following table summarises approximate `dt` changes required to obtain common musical intervals for different `dt_glide` values:
 
@@ -261,7 +265,12 @@ The following table summarises approximate `dt` changes required to obtain commo
 | −12 st · octave | `+50 ms` | `+100 ms` | `+200 ms` | `+400 ms` |
 
 
-For example, with `dt_glide 0.4`, moving from `dt 400` to approximately `dt 266` (−134 ms) produces a perfect fifth upwards:
+For example, with `dt_glide 0.4`, decreasing from `dt 400` to `dt 200` (−200 ms) produces approximately a perfect fifth upwards. Then, increasing from `dt 200` to `dt 333` (+133 ms) produces approximately a perfect fifth downwards. 
+```
+track2 > source zen loop 3 len 2
+delay 0.8 dt 400 200 333 dt_glide 0.4
+```
+⚠️ Each interval is determined by the change from one `dt` value to the next, not by their distance from the first value in the sequence.
 
 ```
 drum > source snare2 loop 4
