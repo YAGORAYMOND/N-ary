@@ -308,6 +308,15 @@ voice > source choir loop 10
  reverb 0.8
 ```
 
+## Reverb
+All tracks share the same reverb space (bus).
+
+Global parameters:
+  - `decay` — Length of the reverb tail in seconds. (default: `4`)
+  - `predelay` — Delay between the dry sound and the start of the reverb in milliseconds. (range=0-300, default=0)
+
+Track parameter: 
+  - `reverb` — Amount of signal sent to the reverb bus (dry/wet). (range=0-1, default=0)
 
 # Techniques
 ## Doppler Pitch Shifting
@@ -354,17 +363,6 @@ drum > source snare2 loop 4
  dt 100 200 400 800
  dfb 0.2 0.4 0.6 0.8
 ```
-
-## Reverb
-All tracks share the same reverb space (bus).
-
-Global parameters:
-  - `decay` — Length of the reverb tail in seconds. (default: `4`)
-  - `predelay` — Delay between the dry sound and the start of the reverb in milliseconds. (range=0-300, default=0)
-
-Track parameter: 
-  - `reverb` — Amount of signal sent to the reverb bus (dry/wet). (range=0-1, default=0)
-
 
 ## Microlooping
 
