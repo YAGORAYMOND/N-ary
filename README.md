@@ -205,6 +205,16 @@ Parameters:
 - `dfb` — Feedback amount. Higher values produce more repetitions. (range=`0-1`, default=`0.5`)
 - `dt_glide` — Time in seconds used to smoothly transition between `dt` values. (default=`0.3`)
 
+**Example 1:** Basic delay
+```
+guitar > source guitar loop 4 delay 0.6 dt 250 dfb 0.7
+```
+This adds a 250 ms delay with 0.7 feedback, mixed at 0.6 with the dry signal.
+
+**Example 2:** Sequenced delay time
+
+
+
 ```
 guitar > source guitar loop 4
  delay 0.6
