@@ -212,17 +212,38 @@ guitar > source guitar loop 4 delay 0.6 dt 250 dfb 0.7
 This adds a 250 ms delay with 0.7 feedback, mixed at 0.6 with the dry signal.
 
 **Example 2:** Sequenced delay time
-
-
-
 ```
-guitar > source guitar loop 4
- delay 0.6
- dt 250
- dfb 0.7
+track > source zen loop 6 
+ delay 0.6 dt 100 200 500 dfb 0.8
 ```
+The loop is divided into three equal regions, so the delay time changes every 2 seconds: 100 → 200 → 500 ms.
 
-Delay parameters can also be sequenced:
+When dt changes while delayed audio is still sounding, the delay line is stretched or compressed, producing a Doppler-like pitch shift.
+
+**Example 3:** Smooth delay-time transitions
+```
+track > source zen loop 6 
+ delay 0.6 dt 100 200 500 dfb 0.8 dt_glide 0.8
+```
+`dt_glide 0.8` makes each transition between delay times take 0.8 seconds.
+This smooths the Doppler-like pitch shift produced when `dt` changes.
+
+Exemple 4: combinar sequenciacio de tots els parametres amb n diferents de valors i rotate
+Exemple 5: encadenar varios delays
+Exemple 6: aconseguir microtuning https://www.youtube.com/watch?v=78wMNdnCBs8&list=LL&index=22
+
+### Doppler pitch shifting
+Changing `dt` while delayed audio is sounding produces a Doppler-like pitch shift. Decreasing `dt` shifts the sound upwards; increasing it shifts the sound downwards.
+
+The resulting interval **depends on the speed of the delay-time change** , not on the original note. The same transition can therefore shift different source notes by approximately the same musical interval.
+
+For a desired interval of (n) semitones:
+
+[
+dt_{glide} = \frac{\Delta dt}{1 - 2^{n/12}}
+]
+
+
 
 ```
 drum > source snare2 loop 4
