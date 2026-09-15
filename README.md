@@ -238,18 +238,16 @@ Changing `dt` while delayed audio is sounding produces a Doppler-like pitch shif
 The resulting interval **depends on the speed of the delay-time change** , not on the original note. The same transition can therefore shift different source notes by approximately the same musical interval.
 
 To calculate the required change in delay time:
-
-$$
-{\Delta dt} = \frac{1 - 2^{n/12}}dt_{glide}
-$$
-
+```math
+\Delta dt = 1000 \cdot dt_{glide} \left(1 - 2^{n/12}\right)
+```
 where:
 
 - $\Delta dt = dt_{new} - dt_{old}$, in milliseconds.
 - $dt_{glide}$ is the transition time in seconds.
 - $n$ is the desired interval in semitones. Positive values shift upwards; negative values shift downwards.
 
-The following table summarises approximate `dt` changes required to obtain common musical intervals for different `dt_glide` values:
+The following table summarises approximate `dt` changes ($\Delta dt$) required to obtain common musical intervals for different `dt_glide` values:
 
 | Interval | `dt_glide 0.1` | `dt_glide 0.2` | `dt_glide 0.4` | `dt_glide 0.8` |
 | --- | ---: | ---: | ---: | ---: |
