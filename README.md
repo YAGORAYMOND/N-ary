@@ -258,7 +258,8 @@ lpf_glide 0.05 0.3 3
 As with other sequenced parameters, functions such as rotate can also be applied to lpf and lpf_glide (*e.g.* `lpf_glide 0.05 0.3 3 rotate 1`)
 
 ## Delay
-Each track has its own delay effect.
+
+`delay` — adds delayed repetitions of the incoming signal.
 
 **Parameters:**
 - `delay` — Amount of delayed signal (dry/wet). (range=`0-1`, default=`0`)
@@ -308,14 +309,41 @@ voice > source choir loop 10
 ```
 
 ## Reverb
-All tracks share the same reverb space (bus).
+
+`reverb` — adds reverberation to the incoming signal.
 
 **Parameters:**
-  - `reverb` — Amount of signal sent to the reverb bus (dry/wet). (range=0-1, default=0
-  - `decay` — Length of the reverb tail in seconds. (default: `4`)
-  - `predelay` — Delay between the dry sound and the start of the reverb in milliseconds. (range=0-300, default=0)
+  - `reverb` — Dry/wet amount. (range=0-1, default=0
+  - `size` — Controls the reverb decay time and perceived space size. (range=0-1, default=0.7)
+  -  `predelay` — Delay between the dry sound and the start of the reverb, in milliseconds. (range=`≥0`, default=`30`)
+  - `decay` — Damping amount. Reserved for a future algorithmic reverb implementation; currently has no effect.
 
 **Implementation note:** N-ary currently uses `Tone.Reverb`, a convolution-based reverb. The reverb amount can be sequenced, while `decay` and `predelay` are treated as static parameters because changing them requires regenerating the impulse response. A future implementation may replace this with an algorithmic Dattorro reverb, allowing these parameters to be modulated continuously in real time.
+
+**Example 1:** Basic reverb
+```
+guit1 > source guitar loop 2 
+ reverb 0.7 size .8 predelay 30
+```
+
+**Example 2:** Dry/wet sequencing
+The reverb amount can be sequenced, but changes are currently abrupt and are therefore not recommended for smooth transitions.
+```
+voice > source piano loop 8 
+ reverb 0.1 0.8 1 size 0.8 predelay 30
+```
+
+**Example 3:** Stacked reverbs
+Reverb can also be chained with other effects, including other reverb instances:
+```
+track > source guitar loop 4 len 0.5
+ pitch 0 24 5 12 rotate 1
+ delay 0.7 dt 300 dfb 0.7 
+ reverb 0.6 size 0.5 predelay 20 
+ lpf 200 350 800 500
+ reverb 0.85 size 0.9 predelay 60 
+ delay 0.4 dt 1000 998 1001 dfb 0.65
+```
 
 # Techniques
 ## Doppler Pitch Shifting
