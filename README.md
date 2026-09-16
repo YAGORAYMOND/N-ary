@@ -37,7 +37,7 @@ Welcome! This is **N-ary**, a web-based live coding environment focused on playa
 
 - [Techniques](#techniques)
   - [Doppler Pitch Shifting](#doppler-pitch-shifting)
-  - [Microlooping](#microlooping)
+  - [Delay Microlooping](#dual-delay-feedback-microlooping--phase-shifting)
 
 - [Credits](#credits)
   
@@ -267,13 +267,13 @@ As with other sequenced parameters, functions such as rotate can also be applied
 - `dfb` — Feedback amount. Higher values produce more repetitions. (range=`0-1`, default=`0.5`)
 - `dt_glide` — Time in seconds used to smoothly transition between `dt` values. (default=`0.3`)
 
-**Example 1:** Basic delay
+**Example 1:** Basic delay  
 ```
 guitar > source guitar loop 4 delay 0.6 dt 250 dfb 0.7
 ```
 This adds a 250 ms delay with 0.7 feedback, mixed at 0.6 with the dry signal.
 
-**Example 2:** Sequenced delay time
+**Example 2:** Sequenced delay time  
 ```
 track > source zen loop 6 
  delay 0.6 dt 100 200 500 dfb 0.8
@@ -282,7 +282,7 @@ The loop is divided into three equal regions, so the delay time changes every 2 
 
 When dt changes while delayed audio is still sounding, the delay line is stretched or compressed, producing a Doppler-like pitch shift.
 
-**Example 3:** Smooth delay-time transitions
+**Example 3:** Smooth delay-time transitions  
 ```
 track > source zen loop 6 
  delay 0.6 dt 100 200 500 dfb 0.8 dt_glide 0.8
@@ -290,11 +290,8 @@ track > source zen loop 6
 `dt_glide 0.8` makes each transition between delay times take 0.8 seconds.
 This smooths the Doppler-like pitch shift produced when `dt` changes.
 
-
-
-TO DO:
-Exemple 4: combinar sequenciacio de tots els parametres amb n diferents de valors i rotate
-Exemple 5: encadenar varios delays
+**Exemple 4:** Combining and chaining delays  
+Each delay is an independent effect instance with its own parameters. Multiple delays can be placed anywhere in the effect chain, and sequenced parameters can use different numbers of values. This allows complex effect chains to evolve at different rates within the same loop.
 ```
 t > source piano loop 4 len 0.2
 pitch 0 5 12 19 rotate 1
@@ -305,24 +302,13 @@ reverb .8 size .9 predelay 20
 delay .4 dt 700 1100 900 dfb .55
 ```
 
-Exemple 6: aconseguir microtuning https://www.youtube.com/watch?v=78wMNdnCBs8&list=LL&index=22
 
-```
-decay 10
-predelay 300
-
-drums > source kick loop 2
- reverb 0.4
-voice > source choir loop 10
- len 2
- reverb 0.8
-```
-
-## Reverb
+## Reverb  
 
 `reverb` — adds reverberation to the incoming signal.
 
-**Parameters:**
+**Parameters:**  
+
   - `reverb` — Dry/wet amount. (range=0-1, default=0
   - `size` — Controls the reverb decay time and perceived space size. (range=0-1, default=0.7)
   -  `predelay` — Delay between the dry sound and the start of the reverb, in milliseconds. (range=`≥0`, default=`30`)
@@ -330,20 +316,20 @@ voice > source choir loop 10
 
 **Implementation note:** N-ary currently uses `Tone.Reverb`, a convolution-based reverb. The reverb amount can be sequenced, while `decay` and `predelay` are treated as static parameters because changing them requires regenerating the impulse response. A future implementation may replace this with an algorithmic Dattorro reverb, allowing these parameters to be modulated continuously in real time.
 
-**Example 1:** Basic reverb
+**Example 1:** Basic reverb  
 ```
 guit1 > source guitar loop 2 
  reverb 0.7 size .8 predelay 30
 ```
 
-**Example 2:** Dry/wet sequencing
+**Example 2:** Dry/wet sequencing  
 The reverb amount can be sequenced, but changes are currently abrupt and are therefore not recommended for smooth transitions.
 ```
 voice > source piano loop 8 
  reverb 0.1 0.8 1 size 0.8 predelay 30
 ```
 
-**Example 3:** Stacked reverbs
+**Example 3:** Stacked reverbs  
 Reverb can also be chained with other effects, including other reverb instances:
 ```
 track > source guitar loop 4 len 0.5
@@ -403,12 +389,12 @@ drum > source snare2 loop 4
 
 ## Dual-delay feedback microlooping / phase-shifting
 **To be implemented.**
-Technique based on two very short, slightly different feedback-delay loops running in parallel, creating evolving phase relationships and tape-like textures. 
+Technique based on two very short, slightly different feedback-delay loops running in parallel, creating evolving phase relationships and tape-like textures.  
 
- Refs: 
- https://www.youtube.com/watch?v=78wMNdnCBs8&list=LL&index=23&pp=iAQBsAgC
- https://www.youtube.com/watch?v=uyzIqt-dUeY&list=LL
- https://docs.vongon.com/polyphrase.pdf?utm_source=chatgpt.com
+ Refs:  
+ https://www.youtube.com/watch?v=78wMNdnCBs8&list=LL&index=23&pp=iAQBsAgC  
+ https://www.youtube.com/watch?v=uyzIqt-dUeY&list=LL  
+ https://docs.vongon.com/polyphrase.pdf?utm_source=chatgpt.com  
 
 
 
