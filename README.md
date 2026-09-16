@@ -295,6 +295,16 @@ This smooths the Doppler-like pitch shift produced when `dt` changes.
 TO DO:
 Exemple 4: combinar sequenciacio de tots els parametres amb n diferents de valors i rotate
 Exemple 5: encadenar varios delays
+```
+t > source piano loop 4 len 0.2
+     pitch 0 5 rotate 1
+     delay 1 dt 150 dfb 0.95
+     lpf 800
+     delay 1 dt 153 dfb 0.92
+     reverb .8 size .9 predelay 20
+     delay .4 dt 700 1100 900 dfb .55
+```
+
 Exemple 6: aconseguir microtuning https://www.youtube.com/watch?v=78wMNdnCBs8&list=LL&index=22
 
 ```
