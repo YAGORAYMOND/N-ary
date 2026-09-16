@@ -260,8 +260,7 @@ As with other sequenced parameters, functions such as rotate can also be applied
 ## Delay
 Each track has its own delay effect.
 
-Parameters:
-
+**Parameters:**
 - `delay` — Amount of delayed signal (dry/wet). (range=`0-1`, default=`0`)
 - `dt` — Delay time in milliseconds. (default=`400`)
 - `dfb` — Feedback amount. Higher values produce more repetitions. (range=`0-1`, default=`0.5`)
@@ -311,12 +310,12 @@ voice > source choir loop 10
 ## Reverb
 All tracks share the same reverb space (bus).
 
-Global parameters:
+**Parameters:**
+  - `reverb` — Amount of signal sent to the reverb bus (dry/wet). (range=0-1, default=0
   - `decay` — Length of the reverb tail in seconds. (default: `4`)
   - `predelay` — Delay between the dry sound and the start of the reverb in milliseconds. (range=0-300, default=0)
 
-Track parameter: 
-  - `reverb` — Amount of signal sent to the reverb bus (dry/wet). (range=0-1, default=0)
+**Implementation note:** N-ary currently uses `Tone.Reverb`, a convolution-based reverb. The reverb amount can be sequenced, while `decay` and `predelay` are treated as static parameters because changing them requires regenerating the impulse response. A future implementation may replace this with an algorithmic Dattorro reverb, allowing these parameters to be modulated continuously in real time.
 
 # Techniques
 ## Doppler Pitch Shifting
@@ -364,7 +363,7 @@ drum > source snare2 loop 4
  dfb 0.2 0.4 0.6 0.8
 ```
 
-## Microlooping
+## Delay Microlooping
 
 
 # Credits
