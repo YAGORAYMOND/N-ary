@@ -401,7 +401,15 @@ drum > source snare2 loop 4
  dfb 0.2 0.4 0.6 0.8
 ```
 
-## Delay Microlooping
+## Dual-delay feedback microlooping / phase-shifting
+**To be implemented.**
+Technique based on two very short, slightly different feedback-delay loops running in parallel, creating evolving phase relationships and tape-like textures. 
+
+ Refs: 
+ https://www.youtube.com/watch?v=78wMNdnCBs8&list=LL&index=23&pp=iAQBsAgC
+ https://www.youtube.com/watch?v=uyzIqt-dUeY&list=LL
+ https://docs.vongon.com/polyphrase.pdf?utm_source=chatgpt.com
+
 
 
 # Credits
