@@ -280,7 +280,7 @@ track > source zen loop 6
 ```
 The loop is divided into three equal regions, so the delay time changes every 2 seconds: 100 → 200 → 500 ms.
 
-When dt changes while delayed audio is still sounding, the delay line is stretched or compressed, producing a Doppler-like pitch shift.
+When `dt` changes while delayed audio is still sounding, the delay line is stretched or compressed, producing a Doppler-like pitch shift.
 
 **Example 3:** Smooth delay-time transitions  
 ```
