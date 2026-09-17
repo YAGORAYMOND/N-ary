@@ -84,8 +84,8 @@ Use any of the samples already included in the project:
 | Drum Loops | `boombap_20s`<sup>2</sup> |
 | Instruments | `guitar`, `violin`, `piano`<sup>3</sup>|
 | Vocals | `choir`, `uhhh` |
-| Synths  | TBD |
-| Textures | `pink`, `vinyl`, `rain`, `conversation`, `birds`|
+| Synths (Korg Monologue)  | `boat_note`, `buau_guagua`, `buau_noise`, `buau_vocoder`, `cof_bass`, `deep_bass`, `high_bass`, `high_pop`,` kick_bass`, `nintendo`, `pip`, `reso_piano`, `ring_mod_bass`, `supersaw`, `supersaw_dark`, `tv1`|
+| Textures | `white`, `pink`, `vinyl`, `rain`, `conversation`, `birds`|
 | Pads | `field_c`, `city_c`, `zen`, `buzz` |
 
  **(xN) indicates that there are N variants of this sample. The first variant has no number suffix (e.g. `kick`, `kick2`, `kick3`, ...).*
