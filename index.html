@@ -1,4 +1,4 @@
-<!--
+    <!--
  ===========================================================
  TO-DO LIST
   ===========================================================
@@ -53,7 +53,7 @@ ritme > source fatbass_1
    - reverb com a pedal? filosofar...
    - el doble delay
    - shimmer /scatter /harmonics > Rescatar el que calgui. Veure com dividir i que siguin pedals. Pensar en microcosmos.
-   - He detectat un problema amb el delay, que dona efecte latencia: si tu fas guit1 > source guitar loop 2 delay 1 dt 1000 No sona quan cliques per fer trigger sino que sona al primer temps, amb dt de 1s es nota molt... i es incontrolable on sonen les coses. Solucionar!
+   - fase 8 : continuous pedal automation independent of sample events. (vol dir q lpf 800 1000 en un sample llarg va mutant-lo com en un pedal fisic, modula i igual amb el delay i dt.)
    -->
 
 
@@ -136,6 +136,31 @@ guit1 > source guitar loop 2
 <script>
 // 1. VARIABLES GLOBALS
     window.samples = {};
+
+    window.sampleBufferCache = {};
+    window.sampleBufferLoads = {};
+
+    async function ensureSampleBuffer(url) {
+        if (window.sampleBufferCache[url]) {
+            return window.sampleBufferCache[url];
+        }
+
+        if (!window.sampleBufferLoads[url]) {
+            window.sampleBufferLoads[url] = Tone.ToneAudioBuffer.fromUrl(url)
+                .then(buffer => {
+                    window.sampleBufferCache[url] = buffer;
+                    delete window.sampleBufferLoads[url];
+                    return buffer;
+                })
+                .catch(error => {
+                    delete window.sampleBufferLoads[url];
+                    throw error;
+                });
+        }
+
+        return window.sampleBufferLoads[url];
+    }
+
     // Samples que venen de base.
     window.preloadSamples = {
 
@@ -156,6 +181,9 @@ guit1 > source guitar loop 2
         "shaker": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/shaker-analog.wav",
         "shaker2": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/perc/drums_99sounds/shaker-suckup.wav",
 
+        //drum loops
+        "boombap_20s": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/drum_loops/boombap_20s(94.5bpm).wav",
+
         //instruments
         "guitar": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/instruments/guitar_C_rec.wav",
         "violin": "TBD",
@@ -165,11 +193,27 @@ guit1 > source guitar loop 2
         "choir": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/aachen/choir4.mp3",
         "uhhh": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/vocals/uhhh/uhhh_C_choir.wav",
 
-        //synths
-        //TBD (ojo gravar monolog/serum)
+        //synths - Monologue
+        "boat_note": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/boat_note.wav",
+        "buau_guagua": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/buau_guagua.wav",
+        "buau_noise": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/buau_noise.wav",
+        "buau_vocoder": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/buau_vocode.wav",
+        "cof_bass": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/cof_bass.wav",
+        "deep_bass": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/deep_bass.wav",
+        "high_bass": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/high_bass.wav",
+        "high_pop": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/high_pop.wav",
+        "kick_bass": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/kick_bass.wav",
+        "nintendo": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/nintendo.wav",
+        "pip": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/pip.wav",
+        "reso_piano": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/reso_piano.wav",
+        "ring_mod_bass": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/ring_mod_bass.wav",
+        "supersaw": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/supersaw.wav",
+        "supersaw_dark": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/supersaw.wav",
+        "tv1": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/tv1.wav",
 
         //textures
-        "pink": "TBD",
+        "white": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/white_noise.wav",
+        "pink": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/pink_noise.wav",
         "vinyl": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/noise/vinyl1.wav",
         "rain": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/noise/rain_crackle.wav",
         "conversations": "TBD",
@@ -178,6 +222,8 @@ guit1 > source guitar loop 2
         //pads
         "field_c": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/field/field_c_2.wav",
         "city_c": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/pad/sichuan_ambience_pad_C.wav",
+        "zen": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/pad/zen_c3.wav",
+        "buzz": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/pad/buzz_c3.wav"
     }
 
 
@@ -187,8 +233,6 @@ guit1 > source guitar loop 2
 
     //Parametres globals (Del reverb etc, potser canviar per all+pedal en un futur)
     const GLOBAL_PARAMS = new Set([
-        "decay",
-        "predelay"
     ]); 
     //Parametres de track   
     const TRACK_PARAMS = new Set([
@@ -200,8 +244,7 @@ guit1 > source guitar loop 2
         "len",
         "activity",
         "scatter",
-        "shimmer",
-        "reverb"
+        "shimmer"
     ]);
     // Modificadors que s'apliquen
     // al paràmetre anterior
@@ -210,7 +253,9 @@ guit1 > source guitar loop 2
     ]);
         //nom d'efectes (pedals disponibles)
     const EFFECT_TYPES = new Set([
-        "delay"
+        "delay",
+        "lpf",
+        "reverb"
     ]);
     //hiperparámetres de cada efecte
     const EFFECT_PARAMS = {
@@ -218,6 +263,16 @@ guit1 > source guitar loop 2
             "dt",
             "dt_glide",
             "dfb"
+        ]),
+
+        lpf: new Set([
+            "lpf_glide"
+        ]),
+
+        reverb: new Set([
+            "size",
+            "damp",
+            "predelay"
         ])
     };
 
@@ -233,43 +288,17 @@ guit1 > source guitar loop 2
         loop: {
             numericOnly: true,
             maxValues: 1
-        },
-
-        decay: {
-            numericOnly: true,
-            maxValues: 1
-        },
-
-        predelay: {
-            numericOnly: true,
-            maxValues: 1
         }
     };
 
     window.repo = "";
-    //EFECTES
-    window.fx = {
-        decay: 4, // Segons de cua
-        predelay: 0 //delay entre senyal i reverb
-        //en un futur implementar damp (brillantor) del reverb pels mircoloops
-    };
 
+    //EFECTES
     const logElement = document.getElementById('log');
     window.activeLoops = {}; 
     window.activePlayers = [];
     window.loopIterations = {}; //contador d'iteracions per a "rotate"
 
-    // bus de efectes globals (al so total):
-    window.buses = {};
-    window.buses.reverbDelay =
-        new Tone.Delay(
-            window.fx.predelay
-        );
-    window.buses.reverb =
-        new Tone.Reverb({
-            decay: window.fx.decay,
-            wet: 1
-        });
     //bus de efectes individuals de track:
     window.trackFX = {};
 
@@ -330,14 +359,7 @@ guit1 > source guitar loop 2
             parts.join(" | ");
     }
 
-    window.buses.reverbDelay.connect(
-        window.buses.reverb
-    );
-    //connectar: predelay>reverb(que te opció decay)
-    window.buses.reverb.toDestination();
-    window.buses.reverb.generate();
-
-    //rotate per a reverb i track effects
+    //// rotate per a track params
     function getTrackRotate(
         params,
         paramName
@@ -357,61 +379,7 @@ guit1 > source guitar loop 2
             : 0;
     }
 
-    //rotate per a track effects (pitch etc)
-    function getEffectRotate(
-        params,
-        effectType,
-        paramName = null
-    ) {
-
-        const effectMeta =
-            params
-                .__effectsMeta
-                ?.find(
-                    effect =>
-                        effect.type ===
-                        effectType
-                );
-
-        if (!effectMeta) {
-            return 0;
-        }
-
-        let value;
-
-        // Modificador del valor principal
-        // e.g. delay .2 .8 rotate 1
-        if (paramName === null) {
-
-            value =
-                effectMeta
-                    .modifiers
-                    ?.rotate
-                    ?.[0];
-
-        }
-
-        // Modificador d'un paràmetre
-        // e.g. dt 100 500 rotate 1
-        else {
-
-            value =
-                effectMeta
-                    .paramModifiers
-                    ?.[paramName]
-                    ?.rotate
-                    ?.[0];
-
-        }
-
-        const rotate =
-            parseInt(value);
-
-        return Number.isInteger(rotate)
-            ? rotate
-            : 0;
-    }
-
+   
     //////////////////////////////
     // 2. EL MOTOR (Nary Engine)
     /////////////////////////////
@@ -423,7 +391,8 @@ guit1 > source guitar loop 2
         getRegionValue: (
             value,
             eventPosition = 0,
-            rotate = 0
+            rotate = 0,
+            iterationOverride = null
         ) => {
 
             if (value === undefined)
@@ -454,9 +423,9 @@ guit1 > source guitar loop 2
                 window.currentTrackContext;
 
             const iteration =
-                window.loopIterations[
-                    ctx?.id
-                ] || 0;
+                iterationOverride !== null
+                    ? iterationOverride
+                    : (window.loopIterations[ctx?.id] || 0);
 
             const rotatedRegion =
                 (
@@ -512,15 +481,6 @@ guit1 > source guitar loop 2
                     Math.random() > activity
                 )
                     return;
-
-                    const revValue =
-                        parseFloat(
-                            nary.getRegionValue(
-                                params.reverb,
-                                eventPosition, //definit per posició
-                                getTrackRotate(params, "reverb")
-                            ) || 0 // valor de wet/dry reverb (defecte 0)
-                        );   
                 
                 harmonics.forEach((h, i) => {
                     // La probabilitat de veus extra depèn del shimmer i el scatter
@@ -530,152 +490,120 @@ guit1 > source guitar loop 2
                     const delay = i === 0 ? 0 : Math.random() * (scatter * 0.3);
                     const sampleTime = time + delay;
 
-                    //lpf
-                    const fFreq =
-                        params.lpf
+                    // Actualitzar els pedals segons la posició de l'event.
+                    const trackFX = window.trackFX[id];
+                    
+                    const envelope = new Tone.Gain(0);
+
+                    if (trackFX) {
+                        envelope.connect(trackFX.input);
+                    } else {
+                        envelope.toDestination();
+                    }
+
+                    const sampleUrl = window.samples[sourceName];
+                    const sampleBuffer = window.sampleBufferCache[sampleUrl];
+
+                    if (!sampleBuffer) {
+                        console.warn(`Sample buffer not loaded: ${sourceName}`);
+                        return;
+                    }
+                    
+                    const player = new Tone.Player({
+                        url: sampleBuffer,
+                        autostart: false
+                    });
+                
+                    //pitch
+                    const p =
+                        parseFloat(
+                            nary.getRegionValue(
+                                params.pitch,
+                                eventPosition, //posició event defineix pitch
+                                getTrackRotate(params, "pitch")
+                            )
+                        ) || 0;
+                    const detune = (Math.random() * 0.1 - 0.05) * shimmer;
+                    player.playbackRate = (Math.pow(2, p / 12) * h) + detune;
+                    
+                    //len
+                    const duration =
+                        params.len
                             ? parseFloat(
                                 nary.getRegionValue(
-                                    params.lpf,
-                                    eventPosition //en funció de la seva posició
+                                    params.len,
+                                    eventPosition, //posicio del event defineix len
+                                    getTrackRotate(params, "len")
                                 )
                             )
-                            : 22050;
-                    const filter =
-                        new Tone.Filter(
-                            fFreq,
-                            "lowpass"
+                            : null;
+
+                    const panner = new Tone.Panner(0).connect(envelope);
+                    player.connect(panner);
+                    
+                    //VOLUM DELS SAMPLES (gain)
+                    const gain =
+                        parseFloat(
+                            nary.getRegionValue(
+                                params.gain,
+                                eventPosition,
+                                getTrackRotate(params, "gain")
+                            ) ?? 1
                         );
 
-                    // El delay de Tone ja incorpora el camí dry.
-                    // Només enviem directe si aquest track no utilitza delay.
-                    const trackEffects =
-                        window.trackFX[id]?.effects || [];
-                    for (const effect of trackEffects) {
-                        effect.update(
-                            params,
-                            eventPosition,
-                            time
+                    //A GESTIONAR, QUAN TOQUI/CREI ELS PEDALS SHIMMER I SCATTER
+                    const vol =
+                        gain *
+                        (i === 0
+                            ? 1.3
+                            : (0.7 / i) * (shimmer + scatter));
+                    
+                    //Envelope (ha donat molts problemes de clicks als samples, despres d'investigar així es robust)
+                    if (duration !== null) {
+                        envelope.gain.setValueAtTime(0, sampleTime);
+                        envelope.gain.linearRampToValueAtTime(
+                            vol,
+                            sampleTime + 0.03
+                        );
+                        envelope.gain.setValueAtTime(
+                            vol,
+                            sampleTime + duration - 0.03
+                        );
+                        envelope.gain.linearRampToValueAtTime(
+                            0,
+                            sampleTime + duration
+                        );
+                    } else {
+                        envelope.gain.setValueAtTime(
+                            vol,
+                            sampleTime
                         );
                     }
 
-                    const hasEffects =
-                        trackEffects.length > 0;
-                    // el senyal original sempre sona
-                    filter.toDestination();
+                    player.start(sampleTime);
 
-                    //connectar efectes globals (reverb)
-                    const reverbSend =
-                        new Tone.Gain(revValue);
-                    filter.connect(reverbSend);
-                    reverbSend.connect(
-                        window.buses.reverbDelay
-                    );
-                    //cadena d'efectes
-                    let currentNode = filter;
-                    for (const effect of trackEffects) {
-                        currentNode.connect(effect.node);
-                        currentNode = effect.wetGain;
-                    }
-                    if (hasEffects) {
-                        currentNode.toDestination();
+                    if (duration !== null) {
+                        player.stop(sampleTime + duration );
                     }
 
-                    const envelope = new Tone.Gain(0).connect(filter);
-                    const player = new Tone.Player({
-                        url: window.samples[sourceName],
-                        autostart: false,
-                        onload: () => {
+                    const playbackDuration =
+                        player.buffer.duration / player.playbackRate;
 
-                            //pitch
-                            const p =
-                                parseFloat(
-                                    nary.getRegionValue(
-                                        params.pitch,
-                                        eventPosition, //posició event defineix pitch
-                                        getTrackRotate(params, "pitch")
-                                    )
-                                ) || 0;
-                            const detune = (Math.random() * 0.1 - 0.05) * shimmer;
-                            player.playbackRate = (Math.pow(2, p / 12) * h) + detune;
-                            
-                            //len
-                            const duration =
-                                params.len
-                                    ? parseFloat(
-                                        nary.getRegionValue(
-                                            params.len,
-                                            eventPosition, //posicio del event defineix len
-                                            getTrackRotate(params, "len")
-                                        )
-                                    )
-                                    : null;
+                    const cleanupTime =
+                        duration !== null
+                            ? duration + 2
+                            : playbackDuration + 2;
 
-                            const panner = new Tone.Panner(0).connect(envelope);
-                            player.connect(panner);
-                            
-                            //VOLUM DELS SAMPLES (gain)
-                            const gain =
-                                parseFloat(
-                                    nary.getRegionValue(
-                                        params.gain,
-                                        eventPosition,
-                                        getTrackRotate(params, "gain")
-                                    ) ?? 1
-                                );
-
-                            //A GESTIONAR, QUAN TOQUI/CREI ELS PEDALS SHIMMER I SCATTER
-                            const vol =
-                                gain *
-                                (i === 0
-                                    ? 1.3
-                                    : (0.7 / i) * (shimmer + scatter));
-                            
-                            //Envelope (ha donat molts problemes de clicks als samples, despres d'investigar així es robust)
-                            if (duration !== null) {
-                                envelope.gain.setValueAtTime(0, sampleTime);
-                                envelope.gain.linearRampToValueAtTime(
-                                    vol,
-                                    sampleTime + 0.03
-                                );
-                                envelope.gain.setValueAtTime(
-                                    vol,
-                                    sampleTime + duration - 0.03
-                                );
-                                envelope.gain.linearRampToValueAtTime(
-                                    0,
-                                    sampleTime + duration
-                                );
-                            } else {
-                                envelope.gain.setValueAtTime(
-                                    vol,
-                                    sampleTime
-                                );
-                            }
-
-                            player.start(sampleTime);
-
-                            if (duration !== null) {
-                                player.stop(sampleTime + duration);
-                            }
-
-                            const cleanupTime =
-                                duration !== null
-                                    ? duration + 2
-                                    : player.buffer.duration + 2;
-
-                            setTimeout(() => {
-                                const index =
-                                    window.activePlayers.indexOf(player);
-                                if (index !== -1)
-                                    window.activePlayers.splice(index, 1);
-                                player.dispose();
-                                panner.dispose();
-                                envelope.dispose();
-                                filter.dispose();
-                                reverbSend.dispose();
-                            }, cleanupTime * 1000);                            
-                        }
-                    });
+                    setTimeout(() => {
+                        const index =
+                            window.activePlayers.indexOf(player);
+                        if (index !== -1)
+                            window.activePlayers.splice(index, 1);
+                        player.dispose();
+                        panner.dispose();
+                        envelope.dispose();
+                    }, cleanupTime * 1000);                            
+                        
                     window.activePlayers.push(player);
                 });
             },
@@ -688,34 +616,67 @@ guit1 > source guitar loop 2
 
             Tone.getDestination().volume.value = 0; 
 
-            //DELAY
-            // si el track encara no existeix, el creem
-           if (!window.trackFX[id]) {
-                window.trackFX[id] = {
-                    effects: []
-                };
+            // PEDALBOARD
+            const effectDefs = params.__effects || [];
+            const currentTrackFX = window.trackFX[id];
+
+            if (!samePedalTopology(currentTrackFX, effectDefs)) {
+
+                // Si ha canviat l'ordre o el nombre de pedals,
+                // deixem morir naturalment la cadena antiga.
+                if (currentTrackFX) {
+                    retireTrackFX(currentTrackFX);
+                }
+
+                // Nova cadena exactament en l'ordre del codi.
+                window.trackFX[id] = buildTrackFX(effectDefs);
+
+            } else {
+
+                // Si la topologia és la mateixa, mantenim els mateixos
+                // nodes i només actualitzem les definicions.
+                currentTrackFX.effects.forEach((effect, i) => {
+                    effect.setDefinition(effectDefs[i]);
+                });
             }
-            // si el track encara no té delay, el creem
-            if (
-                params.delay &&
-                window.trackFX[id].effects.length === 0
-            ) {
-                window.trackFX[id].effects.push(
-                    effectFactory.createDelay(params)
+
+            // Valor inicial dels pedals.
+            const currentDuration =
+                naryUI.durations[id] || 5;
+
+            const automationStartSeconds =
+                Tone.Transport.seconds;
+
+            const automationBaseCycle =
+                Math.floor(
+                    automationStartSeconds / currentDuration
                 );
-            }
-            
-            //actualitzar delay a cada ctrl enter
-            for (const effect of window.trackFX[id].effects) {
-                effect.update(params);
-            }
-            
+
+            const initialPedalPosition =
+                (automationStartSeconds % currentDuration) /
+                currentDuration;
+
+            const pedalAutomation =
+                window.trackFX[id].effects.map(effect => ({
+                    effect,
+                    positions:
+                        getPedalAutomationPositions(
+                            effect.definition
+                        )
+                }));
+
+            // Situar els pedals a la regió actual del loop.
+            window.trackFX[id].effects.forEach(effect => {
+                effect.update(
+                    initialPedalPosition,
+                    undefined,
+                    0
+                );
+            });
+
             window.loopIterations[id] = 0; //per calcular el n de iteració per al rotate
             const interval = 1/120; // 120 Hz de precisió fixa per defecte
-            const shimmer = params.shimmer ? parseFloat(params.shimmer) : 0;
-            const scatter = params.scatter ? parseFloat(params.scatter) : 0;
-            const harmonics = [1, 2, 1.5, 0.75, 4]; 
-            
+
             //control d'esdeveniments a sonar (barra)
             let previousTransportSeconds =
                 Tone.Transport.seconds;
@@ -723,8 +684,6 @@ guit1 > source guitar loop 2
             const loop = new Tone.Loop(time => {
             // Sincronització amb la barra visual (si està activa)
             if (naryUI.events[id]) {
-                const currentDuration =
-                    naryUI.durations[id] || 5;
                 const currentTransportSeconds =
                     Tone.Transport.seconds;
                 const startTime =
@@ -739,6 +698,39 @@ guit1 > source guitar loop 2
                     Math.floor(
                         endTime / currentDuration
                     );
+
+                // Automatització contínua dels pedals,
+                // independent dels events del track.
+                for (const automation of pedalAutomation) {
+                    for (const pedalPosition of automation.positions) {
+                        for (
+                            let cycle = startCycle;
+                            cycle <= endCycle;
+                            cycle++
+                        ) {
+                            const absolutePedalTime =
+                                cycle * currentDuration +
+                                pedalPosition * currentDuration;
+
+                            if (
+                                absolutePedalTime > startTime &&
+                                absolutePedalTime <= endTime
+                            ) {
+                                const iteration =
+                                    Math.max(
+                                        0,
+                                        cycle - automationBaseCycle
+                                    );
+
+                                automation.effect.update(
+                                    pedalPosition,
+                                    time,
+                                    iteration
+                                );
+                            }
+                        }
+                    }
+                }
 
                 naryUI.events[id].forEach(evPos => {
                     const eventTime =
@@ -787,15 +779,139 @@ guit1 > source guitar loop 2
     //////////////////////
     //2. EFECTES o PEDALS: (els que ja son indpendents, l'objectiu es que tots acabin aqui)
     //////////////////////
-    const effectFactory = {
-        //DELAY
-        createDelay(params){
 
+
+    // =====================================================
+    // NOU SISTEMA DE PEDALS
+    // Helpers que treballen directament amb
+    // una instància concreta d'efecte de l'AST.
+    // =====================================================
+
+    // Retorna els valors d'un pedal com string,
+    // perquè getRegionValue() continuï treballant
+    // com fins ara.
+    //
+    // Ex:
+    // delay 1 dt 100 500
+    //
+    // getPedalValues(effectDef)
+    // -> "1"
+    //
+    // getPedalValues(effectDef, "dt")
+    // -> "100 500"
+    function getPedalValues(
+        effectDef,
+        paramName = null
+    ) {
+
+        const values =
+            paramName === null
+                ? effectDef?.values
+                : effectDef?.[paramName];
+
+        if (!Array.isArray(values)) {
+            return undefined;
+        }
+
+        return values.join(" ");
+    }
+
+
+    // Retorna el rotate de LA INSTÀNCIA CONCRETA
+    // del pedal.
+    //
+    // Això permetrà tenir:
+    //
+    // delay ... rotate 1
+    // delay ... rotate -1
+    //
+    // sense confondre els dos delays.
+    function getPedalRotate(
+        effectDef,
+        paramName = null
+    ) {
+
+        const value =
+            paramName === null
+                ? effectDef
+                    ?.modifiers
+                    ?.rotate
+                    ?.[0]
+
+                : effectDef
+                    ?.paramModifiers
+                    ?.[paramName]
+                    ?.rotate
+                    ?.[0];
+
+        const rotate =
+            parseInt(value);
+
+        return Number.isInteger(rotate)
+            ? rotate
+            : 0;
+    }
+
+    function getPedalAutomationPositions(effectDef) {
+        const positions = new Set();
+
+        const addValues = values => {
+            if (!Array.isArray(values) || values.length <= 1) return;
+
+            for (let i = 0; i < values.length; i++) {
+                positions.add(i / values.length);
+            }
+        };
+
+        addValues(effectDef?.values);
+
+        for (const [key, values] of Object.entries(effectDef || {})) {
+            if (
+                key === "values" ||
+                key === "type" ||
+                key === "modifiers" ||
+                key === "paramModifiers" ||
+                key.endsWith("_glide")
+            ) {
+                continue;
+            }
+
+            addValues(values);
+        }
+
+        return [...positions].sort((a, b) => a - b);
+    }    
+
+    const pedalFactory = {
+
+        create(effectDef) {
+            if (!effectDef) return null;
+
+            switch (effectDef.type) {
+                case "delay":
+                    return this.createDelay(effectDef);
+
+                case "lpf":
+                    return this.createLpf(effectDef);
+
+                case "reverb":
+                    return this.createReverb(effectDef);
+
+                default:
+                    console.warn(`Unknown pedal type: ${effectDef.type}`);
+                    return null;
+            }
+        },
+
+
+        // DELAY
+        createDelay(effectDef) {
             const input = new Tone.Gain();
             const output = new Tone.Gain();
 
             const node = new Tone.FeedbackDelay({
-                wet: 1
+                wet: 1,
+                maxDelay: 10
             });
 
             const wetGain = new Tone.Gain(0);
@@ -810,91 +926,365 @@ guit1 > source guitar loop 2
 
             return {
                 type: "delay",
+
                 input,
                 output,
                 node,
                 wetGain,
 
+                definition: structuredClone(effectDef),
+
+                setDefinition(newDefinition) {
+                    this.definition = structuredClone(newDefinition);
+                },
+
                 update(
-                    params,
                     eventPosition = 0,
-                    time = undefined
-                ){
-                    this.params = structuredClone(params);
+                    time = undefined,
+                    iterationOverride = null
+                ) {
+                    const startTime = time ?? Tone.now();
 
-                    const startTime =
-                        time ?? Tone.now();
-
-                    // quantitat de delay
-                    const delayAmount =
-                        parseFloat(
-                            nary.getRegionValue(
-                                this.params.delay,
-                                eventPosition,
-                                getEffectRotate(
-                                    this.params,
-                                    "delay"
-                                )
-                            ) || 0
-                        );
+                    // Amount
+                    const delayAmount = parseFloat(
+                        nary.getRegionValue(
+                            getPedalValues(this.definition),
+                            eventPosition,
+                            getPedalRotate(this.definition),
+                            iterationOverride
+                        ) || 0
+                    );
 
                     wetGain.gain.rampTo(
-                        Math.max(
-                            0,
-                            Math.min(delayAmount, 1)
-                        ),
+                        Math.max(0, Math.min(delayAmount, 1)),
                         0.02,
                         startTime
                     );
 
-                    // delay time (dt)
-                    const delay_time_glide =
-                        parseFloat(
-                            this.params.dt_glide || 0.3
-                        );
+                    // dt_glide
+                    const delayTimeGlide = parseFloat(
+                        nary.getRegionValue(
+                            getPedalValues(this.definition, "dt_glide"),
+                            eventPosition,
+                            getPedalRotate(this.definition, "dt_glide"),
+                            iterationOverride
+                        ) || 0.3
+                    );
+
+                    // dt
+                    const delayTime = parseFloat(
+                        nary.getRegionValue(
+                            getPedalValues(this.definition, "dt"),
+                            eventPosition,
+                            getPedalRotate(this.definition, "dt"),
+                            iterationOverride
+                        ) || 400
+                    );
 
                     node.delayTime.rampTo(
-                        parseFloat(
-                            nary.getRegionValue(
-                                this.params.dt,
-                                eventPosition,
-                                getEffectRotate(
-                                    this.params,
-                                    "delay",
-                                    "dt"
-                                )
-                            ) || 400
-                        ) / 1000,
-                        delay_time_glide,
+                        delayTime / 1000,
+                        Math.max(0, delayTimeGlide),
                         startTime
                     );
 
                     // feedback
-                    const feedback =
-                        parseFloat(
-                            nary.getRegionValue(
-                                this.params.dfb,
-                                eventPosition,
-                                getEffectRotate(
-                                    this.params,
-                                    "delay",
-                                    "dfb"
-                                )
-                            ) || 0.5
-                        );
+                    const feedback = parseFloat(
+                        nary.getRegionValue(
+                            getPedalValues(this.definition, "dfb"),
+                            eventPosition,
+                            getPedalRotate(this.definition, "dfb"),
+                            iterationOverride
+                        ) || 0.5
+                    );
 
-                    node.feedback.value =
+                    node.feedback.value = Math.max(0, Math.min(feedback, 1));
+                },
+
+                dispose() {
+                    input.dispose();
+                    node.dispose();
+                    wetGain.dispose();
+                    output.dispose();
+                }
+            };
+        },
+
+
+        // LPF
+        createLpf(effectDef) {
+            const input = new Tone.Gain();
+            const node = new Tone.Filter(22050, "lowpass");
+            const output = new Tone.Gain();
+
+            input.connect(node);
+            node.connect(output);
+
+            return {
+                type: "lpf",
+
+                input,
+                output,
+                node,
+
+                definition: structuredClone(effectDef),
+
+                setDefinition(newDefinition) {
+                    this.definition = structuredClone(newDefinition);
+                },
+                
+                update(
+                    eventPosition = 0,
+                    time = undefined,
+                    iterationOverride = null
+                ) {
+                    const startTime = time ?? Tone.now();
+
+                    const cutoff = parseFloat(
+                        nary.getRegionValue(
+                            getPedalValues(this.definition),
+                            eventPosition,
+                            getPedalRotate(this.definition),
+                            iterationOverride
+                        ) || 22050
+                    );
+
+                    const glide = parseFloat(
+                        nary.getRegionValue(
+                            getPedalValues(this.definition, "lpf_glide"),
+                            eventPosition,
+                            getPedalRotate(this.definition, "lpf_glide"),
+                            iterationOverride
+                        ) || 0.03
+                    );
+
+                    node.frequency.rampTo(
+                        Math.max(20, Math.min(cutoff, 22050)),
+                        Math.max(0, glide),
+                        startTime
+                    );
+                },
+
+                dispose() {
+                    input.dispose();
+                    node.dispose();
+                    output.dispose();
+                }
+            };
+        },
+
+        // REVERB
+        createReverb(effectDef) {
+            const input = new Tone.Gain();
+            const output = new Tone.Gain();
+
+            // Paràmetres interns estàtics.
+            // De moment només es llegeix el primer valor.
+            const getStaticValue = (definition, key, fallback) => {
+                const value =
+                    parseFloat(definition?.[key]?.[0]);
+
+                return Number.isFinite(value)
+                    ? value
+                    : fallback;
+            };
+
+            const getSize = definition =>
+                Math.max(
+                    0,
+                    Math.min(
+                        getStaticValue(definition, "size", 0.7),
+                        1
+                    )
+                );
+
+            // Mapping provisional:
+            // size 0 → 0.5 s
+            // size 1 → 15 s
+            const sizeToDecay = definition =>
+                0.5 + getSize(definition) * 14.5;
+
+            const getPredelay = definition =>
+                Math.max(
+                    0,
+                    getStaticValue(
+                        definition,
+                        "predelay",
+                        30
+                    )
+                ) / 1000; // ms → s
+
+
+            let currentDecay =
+                sizeToDecay(effectDef);
+
+            let currentPredelay =
+                getPredelay(effectDef);
+
+
+            const reverbNode =
+                new Tone.Reverb({
+                    decay: currentDecay,
+                    preDelay: currentPredelay,
+                    wet: 0
+                });
+
+
+            input.connect(reverbNode);
+            reverbNode.connect(output);
+
+
+            return {
+                type: "reverb",
+
+                input,
+                output,
+                reverbNode,
+
+                definition:
+                    structuredClone(effectDef),
+
+
+                setDefinition(newDefinition) {
+                    this.definition =
+                        structuredClone(newDefinition);
+
+                    const nextDecay =
+                        sizeToDecay(newDefinition);
+
+                    const nextPredelay =
+                        getPredelay(newDefinition);
+
+                    // size i predelay són estàtics:
+                    // només canvien amb Ctrl+Enter.
+                    if (nextDecay !== currentDecay) {
+                        currentDecay = nextDecay;
+                        reverbNode.decay = currentDecay;
+                    }
+
+                    if (
+                        nextPredelay !== currentPredelay
+                    ) {
+                        currentPredelay = nextPredelay;
+                        reverbNode.preDelay =
+                            currentPredelay;
+                    }
+
+                    // damp queda reservat per al
+                    // futur reverb algorítmic.
+                },
+
+
+                update(
+                    eventPosition = 0,
+                    time = undefined,
+                    iterationOverride = null
+                ) {
+                    const startTime =
+                        time ?? Tone.now();
+
+                    // Només reverb amount és
+                    // modulable en aquesta implementació.
+                    const amount = parseFloat(
+                        nary.getRegionValue(
+                            getPedalValues(
+                                this.definition
+                            ),
+                            eventPosition,
+                            getPedalRotate(
+                                this.definition
+                            ),
+                            iterationOverride
+                        ) ?? 0
+                    );
+
+                    reverbNode.wet.rampTo(
                         Math.max(
                             0,
-                            Math.min(feedback, 1)
-                        );
+                            Math.min(amount, 1)
+                        ),
+                        0.05,
+                        startTime
+                    );
+                },
+
+
+                dispose() {
+                    input.dispose();
+                    reverbNode.dispose();
+                    output.dispose();
                 }
             };
         }
+
     };
 
 
+
+    function buildTrackFX(effectDefs = []) {
+        const input = new Tone.Gain();
+        const output = new Tone.Gain();
+
+        const effects = effectDefs
+            .map(effectDef => pedalFactory.create(effectDef))
+            .filter(Boolean);
+
+        let currentNode = input;
+
+        for (const effect of effects) {
+            currentNode.connect(effect.input);
+            currentNode = effect.output;
+        }
+
+        currentNode.connect(output);
+        output.toDestination();
+
+        return {
+            input,
+            output,
+            effects
+        };
+    }
+
+    function samePedalTopology(trackFX, effectDefs = []) {
+        if (!trackFX) return false;
+        if (trackFX.effects.length !== effectDefs.length) return false;
+
+        return trackFX.effects.every((effect, i) =>
+            effect.type === effectDefs[i].type &&
+            typeof effect.setDefinition === "function"
+        );
+    }
+
+    function retireTrackFX(trackFX) {
+        if (!trackFX) return;
+
+        trackFX.effects.forEach(effect => {
+            if (effect.type === "delay" && effect.node?.feedback) {
+                effect.node.feedback.rampTo(0, 10);
+            }
+        });
+
+        setTimeout(() => {
+            trackFX.effects.forEach(effect => {
+                if (typeof effect.dispose === "function") {
+                    effect.dispose();
+                } else {
+                    effect.input?.dispose();
+                    effect.node?.dispose();
+                    effect.wetGain?.dispose();
+                    effect.output?.dispose();
+                }
+            });
+
+            trackFX.input?.dispose();
+            trackFX.output?.dispose();
+        }, 15000);
+    }
+
+    ///////////////////////
     // 3. INTERFICIE VISUAL
+    ///////////////////////
+
     const naryUI = {
         widgets: {},      
         durations: {},    // MODIFICAT: Ara guardem la durada de cada ID: { atmosfera: 4, ritme: 2 }
@@ -1663,77 +2053,27 @@ naryInput.init();
         return params;
     }
 
-    // Adaptació TEMPORAL de l'AST al motor actual.
-    // Manté els TRACK_PARAMS i converteix el primer delay
-    // al format pla que encara espera el motor.
     function compileTrackForEngine(track) {
         const params =
             compileTrackParams(track);
 
-        // TEMPORAL:
-        // metadata dels modificadors de TRACK_PARAMS
-        // necessària mentre el motor encara
-        // consumeix params plans
+        // Modificadors dels TRACK_PARAMS
+        // mentre aquests encara es consumeixen com params plans.
         params.__trackModifiers =
             structuredClone(
                 track.modifiers || {}
             );
 
-        // TEMPORAL:
-        // conservem també la metadata estructurada
-        // dels efectes perquè el motor pugui
-        // consultar els seus modifiers
-        params.__effectsMeta =
-            track.effects.map(
-                effect => ({
-                    type: effect.type,
-
-                    modifiers:
-                        structuredClone(
-                            effect.modifiers || {}
-                        ),
-
-                    paramModifiers:
-                        structuredClone(
-                            effect.paramModifiers || {}
-                        )
-                })
+        // Pedals complets, mantenint
+        // ordre, valors i modificadors.
+        params.__effects =
+            structuredClone(
+                track.effects || []
             );
 
-        // TEMPORAL:
-        // el motor actual només pot gestionar un delay per track
-        const delayEffect =
-            track.effects.find(
-                effect => effect.type === "delay"
-            );
-        if (delayEffect) {
-            // delay 0.5
-            params.delay =
-                delayEffect.values.join(" ");
-            // dt, dt_glide, dfb...
-            for (
-                const [key, values]
-                of Object.entries(delayEffect)
-            ) {
-                // "values" correspon al valor
-                // principal del delay i ja s'ha
-                // compilat com params.delay
-                if (key === "values") {
-                    continue;
-                }
-                // Només aplanem propietats que
-                // siguin arrays de valors.
-                // Això exclou type, modifiers
-                // i paramModifiers.
-                if (!Array.isArray(values)) {
-                    continue;
-                }
-                params[key] =
-                    values.join(" ");
-            }
-        }
         return params;
     }
+
    
     // 6. EXECUCIÓ (Amb el reset de volum corregit)
     async function execute() {
@@ -1774,31 +2114,6 @@ naryInput.init();
         parser.directives = [];
         parser.warnings = [];
         parse();
-
-        // Aplicar els paràmetres globals
-        // detectats pel parser nou
-        if (
-            parser.globals.decay?.[0] !== undefined
-        ) {
-            window.fx.decay =
-                parseFloat(
-                    parser.globals.decay[0]
-                );
-        }
-        if (
-            parser.globals.predelay?.[0] !== undefined
-        ) {
-            window.fx.predelay =
-                Math.max(
-                    0,
-                    Math.min(
-                        parseFloat(
-                            parser.globals.predelay[0]
-                        ),
-                        300
-                    )
-                );
-        }
 
         // Passar els warnings del parser nou
         // al sistema de log de N-ary
@@ -1878,6 +2193,20 @@ naryInput.init();
             }
         }
 
+        // PRELOAD DELS BUFFERS
+        const usedSampleUrls = [
+            ...new Set(
+                window.currentAST
+                    .map(track => track.params.source?.[0])
+                    .map(sourceName => window.samples[sourceName])
+                    .filter(Boolean)
+            )
+        ];
+
+        await Promise.all(
+            usedSampleUrls.map(url => ensureSampleBuffer(url))
+        );        
+
         // Crear els tracks del motor
         // directament des de l'AST
         for (const track of window.currentAST) {
@@ -1907,29 +2236,6 @@ naryInput.init();
             );
         }
 
-        //a cada ctrl+enter revisa si valor de reverb ha canviat
-        if (window.buses.reverbDelay)
-            window.buses.reverbDelay.dispose();
-
-        if (window.buses.reverb)
-            window.buses.reverb.dispose();
-
-        window.buses.reverbDelay =
-            new Tone.Delay(
-                window.fx.predelay /1000 //passar de ms a s
-            );
-        window.buses.reverb =
-            new Tone.Reverb({
-                decay: window.fx.decay,
-                wet: 1
-            });
-        window.buses.reverbDelay.connect(
-            window.buses.reverb
-        );
-        //connectar: predelay>reverb(que te opció decay)
-        window.buses.reverb.toDestination();
-        window.buses.reverb.generate();
-
         if (Tone.Transport.state === "stopped") {
             Tone.Transport.start();
         }
@@ -1941,15 +2247,6 @@ naryInput.init();
    function stop() {
         console.log("Comandament STOP rebut");
         logElement.innerText = "STOPPED";
-
-        //Atenuar progressivament el dfb per evitar casos dfb=1 so etern
-        Object.values(window.trackFX).forEach(track => {
-            track.effects.forEach(effect => {
-                if (effect.type === "delay") {
-                    effect.node.feedback.rampTo(0,10);
-                }
-            });
-        });
 
         // Aturem el transport de Tone.js
         Tone.Transport.stop();
@@ -1966,17 +2263,13 @@ naryInput.init();
 
         window.activeLoops = {}; // Reiniciem el magatzem de bucles
 
-        //netejar els objectes delays morts perque no s'acumulin
-        Object.values(window.trackFX).forEach(track => {
-            track.effects.forEach(effect => {
-                setTimeout(
-                    () => effect.node.dispose(),
-                    15000
-                );
-            });
-        });
-
+        //netejar els objectes PEDALS/EFFECTS morts perque no s'acumulin
+        const oldTrackFX = window.trackFX;
         window.trackFX = {};
+
+        Object.values(oldTrackFX).forEach(track => {
+            retireTrackFX(track);
+        });
 
         // NETEJA DE LES BARRES INTERACTIVES (NaryUI)
         if (window.naryUI) {
