@@ -197,7 +197,7 @@ guit1 > source guitar loop 2
         "boat_note": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/boat_note.wav",
         "buau_guagua": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/buau_guagua.wav",
         "buau_noise": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/buau_noise.wav",
-        "buau_vocoder": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/buau_vocode.wav",
+        "buau_vocode": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/buau_vocode.wav",
         "cof_bass": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/cof_bass.wav",
         "deep_bass": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/deep_bass.wav",
         "high_bass": "https://raw.githubusercontent.com/YAGORAYMOND/samples/main/monologue/high_bass.wav",
@@ -2302,15 +2302,71 @@ naryInput.init();
 
     // Per si fas clic fora de l'editor, que els shortcuts funcionin igual
     document.addEventListener('keydown', e => {
+
         if (e.ctrlKey && e.key === 'Enter') {
             e.preventDefault();
             execute();
         }
+
         if (e.ctrlKey && e.key === '.') {
             e.preventDefault();
             stop();
         }
+
+        // CTRL + Ç → comentar/descomentar línia
+        if (
+            e.ctrlKey &&
+            (e.key === 'ç' || e.key === 'Ç')
+        ) {
+            e.preventDefault();
+
+            const cursor = editor.getCursor();
+            const lineNumber = cursor.line;
+            const line = editor.getLine(lineNumber);
+
+            const indentation =
+                line.match(/^\s*/)?.[0] || "";
+
+            const content =
+                line.slice(indentation.length);
+
+            // Si ja està comentada → descomentar
+            if (content.startsWith("//")) {
+
+                editor.replaceRange(
+                    content.slice(2),
+                    {
+                        line: lineNumber,
+                        ch: indentation.length
+                    },
+                    {
+                        line: lineNumber,
+                        ch: line.length
+                    }
+                );
+
+            }
+
+            // Si no → comentar
+            else {
+
+                editor.replaceRange(
+                    "//" + content,
+                    {
+                        line: lineNumber,
+                        ch: indentation.length
+                    },
+                    {
+                        line: lineNumber,
+                        ch: line.length
+                    }
+                );
+
+            }
+        }
+
     });
+ 
 
 </script>
 </body>
