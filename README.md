@@ -311,7 +311,7 @@ delay .4 dt 700 1100 900 dfb .55
 
   - `reverb` — Dry/wet amount. (range=0-1, default=0
   - `size` — Controls the reverb decay time and perceived space size. (range=0-1, default=0.7)
-  -  `predelay` — Delay between the dry sound and the start of the reverb, in milliseconds. (range=`≥0`, default=`30`)
+  -  `predelay` — Delay between the dry sound and the start of the reverb, in milliseconds. (range=`≥0`, default=`0`)
   - `decay` — Damping amount. Reserved for a future algorithmic reverb implementation; currently has no effect.
 
 **Implementation note:** N-ary currently uses `Tone.Reverb`, a convolution-based reverb. The reverb amount can be sequenced, while `decay` and `predelay` are treated as static parameters because changing them requires regenerating the impulse response. A future implementation may replace this with an algorithmic Dattorro reverb, allowing these parameters to be modulated continuously in real time.
