@@ -71,6 +71,14 @@ Click on the loop bar to select it, then use:
   - `e` — Erase event
   - `delete` — Clear all events
 
+# Code conventions
+
+N-ary is not case-sensitive.
+
+Use `//` to comment a line or everything that follows it.
+
+Use `Ctrl + /` or `Ctrl + Ç` (*Spanish keyboard*) to comment or uncomment the current line or selected lines.
+
 Next, let's load some samples.
 
 # Loading samples
