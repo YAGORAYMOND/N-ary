@@ -16,6 +16,8 @@ Welcome! This is **N-ary**, a web-based live coding environment focused on playa
 ## Contents
 
 - [Getting Started](#getting-started)
+
+- [Code Conventions](#code-conventions)
   
 - [Loading Samples](#loading-samples)
   - [Preloaded Samples](#preloaded-samples)
