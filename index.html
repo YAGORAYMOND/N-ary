@@ -27,7 +27,7 @@ FUTURA IMPLEMENTACIÓ GRANULATOR:
 MES IDEES:
     Dividir l'escala en tons, apart de "pitch" que hi hagi "pitch(5)" divideix la octava/escala en 5 (=pentatonica) etc.
 
-***EL REVERB nomes va sobre la primera instancia, no sobre el delay. Et fot pal intentar fer microlooping...
+***EL REVERB nomes va sobre la primera instancia, no sobre el delay. Em fot pal intentar fer microlooping...
 
 
 HO MANTINC NOMES PER TENIR CLARES LES FUNCIONS QUE HI HA I VEURE SI EN UN FUTUR RESCATO SHIMMER ETC.
@@ -50,7 +50,7 @@ ritme > source fatbass_1
 
   TO DO: 
    - Tone.js timing warning: effect.update() is called from inside a Tone.Loop callback, but wet.rampTo()/delayTime.rampTo() ignore the callback's scheduled time; propagate time through Tone.Loop → triggerFlux() → effect.update() and schedule those AudioParam automations using that exact time.
-   - reverb com a pedal? filosofar...
+   - reverb DONA MOLTS PROBLEMES DE BUFER, PENSAR MANERES MES OPTIMES...
    - el doble delay
    - shimmer /scatter /harmonics > Rescatar el que calgui. Veure com dividir i que siguin pedals. Pensar en microcosmos.
    - fase 8 : continuous pedal automation independent of sample events. (vol dir q lpf 800 1000 en un sample llarg va mutant-lo com en un pedal fisic, modula i igual amb el delay i dt.)
@@ -233,6 +233,7 @@ guit1 > source guitar loop 2
 
     //Parametres globals (Del reverb etc, potser canviar per all+pedal en un futur)
     const GLOBAL_PARAMS = new Set([
+        "channels"
     ]); 
     //Parametres de track   
     const TRACK_PARAMS = new Set([
@@ -240,7 +241,8 @@ guit1 > source guitar loop 2
         "loop",
         "gain",
         "pitch",
-        "pan",
+        "ch",
+        "ch_glide",
         "len",
         "activity",
         "scatter",
@@ -280,12 +282,22 @@ guit1 > source guitar loop 2
     // Per defecte, els paràmetres accepten
     // múltiples valors numèrics.
     const VALUE_RULES = {
+        channels: {
+            numericOnly: true,
+            maxValues: 1
+
+        },
         source: {
             numericOnly: false,
             maxValues: 1
         },
 
         loop: {
+            numericOnly: true,
+            maxValues: 1
+        },
+
+        ch_glide: {
             numericOnly: true,
             maxValues: 1
         }
@@ -301,6 +313,319 @@ guit1 > source guitar loop 2
 
     //bus de efectes individuals de track:
     window.trackFX = {};
+
+
+    // Output persistent de cada entitat d'àudio.
+        // Avui només existeixen tracks.
+        // FUTURE AUDIO ENTITIES:
+        // track
+        // group
+        // bus
+        // master
+        
+    window.entityOutputs = {};
+    window.spatialRouters = {};
+    window.entityRoutingModes = {};
+
+    window.outputManager = {
+        master: null,
+        merger: null,
+        channelCount: 2, //per defecte 2 canals (L=1, R=2: stereo)
+        hardwareChannelCount: null,
+
+        init() {
+            if (this.master) return;
+
+            const context = Tone.getContext().rawContext;
+            const destination = context.destination;
+
+            this.hardwareChannelCount = destination.maxChannelCount;
+
+            destination.channelCount = this.hardwareChannelCount;
+            destination.channelCountMode = "explicit";
+            destination.channelInterpretation = "discrete";
+
+            this.master = new Tone.Gain(1);
+            this.merger = context.createChannelMerger(this.hardwareChannelCount);
+
+            this.master.connect(destination);
+            this.merger.connect(destination);
+        },
+
+        connect(node) {
+            this.init();
+            node.connect(this.master);
+        },
+
+        disconnect(node) {
+            node.disconnect(this.master);
+        },
+
+        connectChannel(node, channelIndex) {
+            this.init();
+            node.connect(this.merger, 0, channelIndex);
+        },
+
+        //Funció que obté el numero maxim de canals disponibles (donat pel web audio) 
+        //Web Audio exposa maxChannelCount com el màxim de canals que el dispositiu de sortida pot gestionar.
+        getMaxChannelCount() {
+            return Tone.getContext().rawContext.destination.maxChannelCount;
+        },
+
+        setChannelCount(count) {
+            this.channelCount = count;
+        }
+    };
+
+    function getOrCreateEntityOutput(id) {
+        if (!window.entityOutputs[id]) {
+            const output = new Tone.Gain(1);
+            window.outputManager.connect(output);
+
+            window.entityOutputs[id] = output;
+            window.entityRoutingModes[id] = "legacy";
+        }
+
+        return window.entityOutputs[id];
+    }  
+
+    function getOrCreateSpatialRouter(id) {
+        if (window.spatialRouters[id]) return window.spatialRouters[id];
+
+        window.outputManager.init();
+
+        const context = Tone.getContext().rawContext;
+        const input = context.createGain();
+
+        // Un track amb "ch" es tracta com una font espacial mono.
+        // El senyal post-FX es redueix a mono abans del routing físic.
+        input.channelCount = 1;
+        input.channelCountMode = "explicit";
+        input.channelInterpretation = "speakers";
+
+        const gains = Array.from({ length: window.outputManager.hardwareChannelCount }, (_, i) => {
+            const gain = context.createGain();
+            gain.gain.value = 0;
+
+            input.connect(gain);
+            window.outputManager.connectChannel(gain, i);
+
+            return gain;
+        });
+
+        const router = {
+            input,
+            gains,
+            currentPosition: null,
+            currentGains: new Array(window.outputManager.hardwareChannelCount).fill(0) //per defecte el vector de gains per ch es de [0, 0, 0 ...] amb size de ch available
+        };
+
+        window.spatialRouters[id] = router;
+        return router;
+    }
+
+    //Passa de llenguatge de codi a vector de canals (e.g. ch 1.5 a [.707, .707, 0, 0, 0, 0, 0, 0] )
+    function channelPositionToGains(position) {
+        const activeChannels = window.outputManager.channelCount;
+        const hardwareChannels = window.outputManager.hardwareChannelCount;
+        const gains = new Array(hardwareChannels).fill(0);
+
+        if (activeChannels === 1) {
+            gains[0] = 1;
+            return gains;
+        }
+
+        const channelA = Math.floor(position);
+        const fraction = position - channelA;
+        const channelB = channelA === activeChannels ? 1 : channelA + 1;
+
+        gains[channelA - 1] = Math.cos(fraction * Math.PI / 2);
+        gains[channelB - 1] += Math.sin(fraction * Math.PI / 2);
+
+        return gains;
+    }
+
+    //normalització de vectors: e.g. [1,0,1,0] >> [.707,0,.707,0]
+    function normalizeSpatialGains(gains) {
+        const power = Math.sqrt(gains.reduce((sum, gain) => sum + gain * gain, 0));
+
+        if (power === 0) return gains;
+
+        return gains.map(gain => gain / power);
+    }
+
+    //corbes de equal-power del ch_glide
+    function createSpatialGlideCurves(fromGains, toGains, duration) {
+        const steps = Math.max(32, Math.min(512, Math.ceil(duration * 120) + 1));
+        const curves = fromGains.map(() => new Float32Array(steps));
+
+        for (let step = 0; step < steps; step++) {
+            const t = step / (steps - 1);
+
+            const gains = fromGains.map(
+                (gain, i) => gain + ((toGains[i] ?? 0) - gain) * t
+            );
+
+            const normalized = normalizeSpatialGains(gains);
+
+            normalized.forEach((gain, i) => {
+                curves[i][step] = gain;
+            });
+        }
+
+        return curves;
+    }
+
+
+    //utilitza la normalització de vectors per convertir un state de ch a noraml
+    function channelStateToGains(state) {
+        const values = isGroupedState(state) ? state.values : [state];
+        const hardwareChannels = window.outputManager.hardwareChannelCount;
+        const gains = new Array(hardwareChannels).fill(0);
+
+        values.forEach(value => {
+            const positionGains = channelPositionToGains(Number(value));
+            positionGains.forEach((gain, i) => gains[i] += gain);
+        });
+
+        return normalizeSpatialGains(gains);
+    }
+
+    function sameSpatialGains(a, b, epsilon = 0.000001) {
+        return Array.isArray(a) &&
+            a.length === b.length &&
+            a.every((gain, i) =>
+                Math.abs(gain - (b[i] ?? 0)) < epsilon
+            );
+    }
+
+    function setEntitySpatialGains(id, targetGains, glide = 0) {
+        const output = getOrCreateEntityOutput(id);
+        const router = getOrCreateSpatialRouter(id);
+
+        if (window.entityRoutingModes[id] !== "spatial") {
+            window.outputManager.disconnect(output);
+            output.connect(router.input);
+            window.entityRoutingModes[id] = "spatial";
+        }
+
+        const time = Tone.getContext().rawContext.currentTime;
+
+        if (glide <= 0) {
+            router.gains.forEach((gain, i) => {
+                gain.gain.cancelScheduledValues(time);
+                gain.gain.setValueAtTime(targetGains[i] ?? 0, time);
+            });
+
+            router.currentGains = [...targetGains];
+            return;
+        }
+
+        router.gains.forEach(gain => {
+            gain.gain.cancelAndHoldAtTime(time);
+        });
+
+        const currentGains =
+            router.gains.map(gain => gain.gain.value);
+
+        const curves =
+            createSpatialGlideCurves(
+                currentGains,
+                targetGains,
+                glide
+            );
+
+        router.gains.forEach((gain, i) => {
+            gain.gain.setValueCurveAtTime(
+                curves[i],
+                time,
+                glide
+            );
+        });
+
+        router.currentGains = [...targetGains];
+    }
+
+
+    function setEntityChannelPosition(id, position) {
+        const targetGains = channelPositionToGains(position);
+
+        setEntitySpatialGains(id, targetGains);
+        window.spatialRouters[id].currentPosition = position;
+    }
+
+    function setEntityChannelState(id, state, glide = 0) {
+        const targetGains = channelStateToGains(state);
+        const router = window.spatialRouters[id];
+
+        const sameTarget =
+            window.entityRoutingModes[id] === "spatial" &&
+            router &&
+            sameSpatialGains(router.currentGains, targetGains);
+
+        if (!sameTarget) {
+            setEntitySpatialGains(id, targetGains, glide);
+        }
+
+        window.spatialRouters[id].currentPosition =
+            isGroupedState(state) ? null : Number(state);
+    }
+
+    function setEntityLegacyRouting(id) {
+        const output = getOrCreateEntityOutput(id);
+
+        if (window.entityRoutingModes[id] === "spatial") {
+            const router = window.spatialRouters[id];
+
+            output.disconnect(router.input);
+            window.outputManager.connect(output);
+
+            window.entityRoutingModes[id] = "legacy";
+        }
+    }
+    
+    //funcio que interpreta ch
+    function applyEntityRouting(id, params) {
+        const states = params.__trackStates?.ch;
+
+        if (states === undefined) {
+            setEntityLegacyRouting(id);
+            return true;
+        }
+
+        if (!Array.isArray(states) || states.length === 0) {
+            statusError(`ch expects at least one state`);
+            return false;
+        }
+
+        const channelCount = window.outputManager.channelCount;
+
+        const glide =
+            params.ch_glide === undefined
+                ? 0.05 //poso 50 ms i no 0 perque sino fa un click en els trnsients de lo bruscos que son. 
+                : Number(params.ch_glide);
+
+        if (!Number.isFinite(glide) || glide < 0) {
+            statusError(`ch_glide expects a value >= 0`);
+            return false;
+        }
+
+        for (const state of states) {
+            const values = isGroupedState(state) ? state.values : [state];
+
+            for (const value of values) {
+                const position = Number(value);
+
+                if (!Number.isFinite(position) || position < 1 || position >= channelCount + 1) {
+                    statusError(`ch expects values >= 1 and < ${channelCount + 1}`);
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+    
 
     //log
     window.naryStatus = {
@@ -377,6 +702,26 @@ guit1 > source guitar loop 2
         return Number.isInteger(rotate)
             ? rotate
             : 0;
+    }
+
+    //Selector general de states
+    function getSequenceStateIndex(states, position = 0, rotate = 0, iteration = 0) {
+        if (!Array.isArray(states) || states.length === 0) return -1;
+
+        const region = Math.min(
+            Math.floor(position * states.length),
+            states.length - 1
+        );
+
+        const rotatedRegion =
+            region +
+            (parseInt(rotate) || 0) *
+            iteration;
+
+        return (
+            (rotatedRegion % states.length) +
+            states.length
+        ) % states.length;
     }
 
    
@@ -492,13 +837,15 @@ guit1 > source guitar loop 2
 
                     // Actualitzar els pedals segons la posició de l'event.
                     const trackFX = window.trackFX[id];
+
+                    const entityOutput = getOrCreateEntityOutput(id);
                     
                     const envelope = new Tone.Gain(0);
 
                     if (trackFX) {
                         envelope.connect(trackFX.input);
                     } else {
-                        envelope.toDestination();
+                         envelope.connect(entityOutput);
                     }
 
                     const sampleUrl = window.samples[sourceName];
@@ -538,8 +885,7 @@ guit1 > source guitar loop 2
                             )
                             : null;
 
-                    const panner = new Tone.Panner(0).connect(envelope);
-                    player.connect(panner);
+                    player.connect(envelope);
                     
                     //VOLUM DELS SAMPLES (gain)
                     const gain =
@@ -600,7 +946,6 @@ guit1 > source guitar loop 2
                         if (index !== -1)
                             window.activePlayers.splice(index, 1);
                         player.dispose();
-                        panner.dispose();
                         envelope.dispose();
                     }, cleanupTime * 1000);                            
                         
@@ -616,9 +961,15 @@ guit1 > source guitar loop 2
 
             Tone.getDestination().volume.value = 0; 
 
+            const entityOutput = getOrCreateEntityOutput(id);
+
+            if (!applyEntityRouting(id, params)) return;
+
             // PEDALBOARD
             const effectDefs = params.__effects || [];
             const currentTrackFX = window.trackFX[id];
+            
+
 
             if (!samePedalTopology(currentTrackFX, effectDefs)) {
 
@@ -629,7 +980,7 @@ guit1 > source guitar loop 2
                 }
 
                 // Nova cadena exactament en l'ordre del codi.
-                window.trackFX[id] = buildTrackFX(effectDefs);
+                window.trackFX[id] = buildTrackFX( effectDefs, entityOutput);
 
             } else {
 
@@ -655,6 +1006,32 @@ guit1 > source guitar loop 2
             const initialPedalPosition =
                 (automationStartSeconds % currentDuration) /
                 currentDuration;
+                
+            const chStates = params.__trackStates?.ch;
+            const chRotate = getTrackRotate(params, "ch");
+            const chGlide =
+            params.ch_glide === undefined
+                ? 0.05 // no poso 0 sino 50 ms ja que sino fa clicks pel tranient brusc
+                : Number(params.ch_glide);
+            let currentChStateIndex = -1;
+
+            if (Array.isArray(chStates) && chStates.length > 0) {
+                const initialChStateIndex =
+                    getSequenceStateIndex(
+                        chStates,
+                        initialPedalPosition,
+                        chRotate,
+                        0
+                    );
+
+                setEntityChannelState(
+                    id,
+                    chStates[initialChStateIndex]
+                );
+
+                currentChStateIndex =
+                    initialChStateIndex;
+            }
 
             const pedalAutomation =
                 window.trackFX[id].effects.map(effect => ({
@@ -698,6 +1075,38 @@ guit1 > source guitar loop 2
                     Math.floor(
                         endTime / currentDuration
                     );
+                
+                // Seqüenciació contínua de ch
+                if (Array.isArray(chStates) && chStates.length > 1) {
+                    const chPosition =
+                        (currentTransportSeconds % currentDuration) /
+                        currentDuration;
+
+                    const chIteration =
+                        Math.max(
+                            0,
+                            endCycle - automationBaseCycle
+                        );
+
+                    const nextChStateIndex =
+                        getSequenceStateIndex(
+                            chStates,
+                            chPosition,
+                            chRotate,
+                            chIteration
+                        );
+
+                    if (nextChStateIndex !== currentChStateIndex) {
+                        setEntityChannelState(
+                            id,
+                            chStates[nextChStateIndex],
+                            chGlide
+                        );
+
+                        currentChStateIndex =
+                            nextChStateIndex;
+                    }
+                }                
 
                 // Automatització contínua dels pedals,
                 // independent dels events del track.
@@ -813,7 +1222,7 @@ guit1 > source guitar loop 2
             return undefined;
         }
 
-        return values.join(" ");
+        return sequenceStatesToString(values);
     }
 
 
@@ -1109,7 +1518,7 @@ guit1 > source guitar loop 2
                     getStaticValue(
                         definition,
                         "predelay",
-                        30
+                        0 //predelay default a 0ms (pq no doni sensacio de latencia amb wet 100%)
                     )
                 ) / 1000; // ms → s
 
@@ -1220,7 +1629,7 @@ guit1 > source guitar loop 2
 
 
 
-    function buildTrackFX(effectDefs = []) {
+    function buildTrackFX(effectDefs = [], entityOutput) {
         const input = new Tone.Gain();
         const output = new Tone.Gain();
 
@@ -1236,7 +1645,7 @@ guit1 > source guitar loop 2
         }
 
         currentNode.connect(output);
-        output.toDestination();
+        output.connect(entityOutput);
 
         return {
             input,
@@ -1544,8 +1953,8 @@ naryInput.init();
             // Eliminem comentaris:
             // tot el que hi ha després de // fins al final de la línia
             let line = stripLineComment(lines[i]);
-            // Separem els >
-            line = line.replace(/>/g, " > ");
+            // Separem els tokens estructurals (parentesis i >)
+            line = line.replace(/([>()])/g, " $1 ");
             // Separem els tokens
             let lineTokens = line.split(/\s+/);
             // Eliminem tokens buits
@@ -1562,30 +1971,37 @@ naryInput.init();
         return tokens;
     }
 
+    //Fer les keywords case-insensitive
+    function normalizeKeyword(value) {
+    return typeof value === "string"
+        ? value.toLowerCase()
+        : value;
+    }
+
     //detectar paràmetres globals
     function isGlobalParam(token) {
-        return GLOBAL_PARAMS.has(token);
+        return GLOBAL_PARAMS.has(normalizeKeyword(token));
     }
 
     //detectar modificadors de paràmetre
         function isParamModifier(token) {
-            return PARAM_MODIFIERS.has(token);
+            return PARAM_MODIFIERS.has(normalizeKeyword(token));
         }
 
     //detectar parametre de track
     function isTrackParam(token) {
-        return TRACK_PARAMS.has(token);
+        return TRACK_PARAMS.has(normalizeKeyword(token));
     }
 
     //detectar effect types
     function isEffectType(token) {
-        return EFFECT_TYPES.has(token);
+        return EFFECT_TYPES.has(normalizeKeyword(token));
     }
 
     //detectar effect params
     function isEffectParam(token) {
         for (const effect in EFFECT_PARAMS) {
-            if (EFFECT_PARAMS[effect].has(token)) {
+            if (EFFECT_PARAMS[effect].has(normalizeKeyword(token))) {
                 return true;
             }
         }
@@ -1602,16 +2018,109 @@ naryInput.init();
         );
     }
 
+    function isGroupedState(state) {
+        return state && typeof state === "object" && state.type === "group" && Array.isArray(state.values);
+    }
+
+    function sequenceStatesToString(states) {
+        if (!Array.isArray(states)) return undefined;
+        return states.map(state => isGroupedState(state) ? `(${state.values.join(" ")})` : state).join(" ");
+    }    
+
     //obte la regla de inici del parametre
     function getValueRule(keyword) {
+        const normalized = normalizeKeyword(keyword);
 
         return (
-            VALUE_RULES[keyword] || {
+            VALUE_RULES[normalized] || {
                 numericOnly: true,
                 maxValues: Infinity
             }
         );
     }
+
+    //per gestionar parentesis despres d'un token com ara: ch 1 (2 3) 4
+    function consumeGroupedState(startPosition, rule, startLine) {
+        const openToken = parser.tokens[startPosition];
+        const groupValues = [];
+        let position = startPosition + 1;
+        let depth = 1;
+        let valid = true;
+
+        openToken.consumed = true;
+
+        while (position < parser.tokens.length) {
+            const token = parser.tokens[position];
+
+            if (token.line !== startLine) {
+                addWarning(`Unclosed grouped state`, openToken.line);
+                return { state: null, nextPosition: position };
+            }
+
+            if (token.value === "(") {
+                depth++;
+                token.consumed = true;
+                valid = false;
+                addWarning(`Nested grouped states are not supported`, token.line);
+                position++;
+                continue;
+            }
+
+            if (token.value === ")") {
+                depth--;
+                token.consumed = true;
+                position++;
+
+                if (depth === 0) {
+                    if (groupValues.length === 0) {
+                        addWarning(`Grouped state cannot be empty`, openToken.line);
+                        valid = false;
+                    }
+
+                    return {
+                        state: valid ? { type: "group", values: groupValues } : null,
+                        nextPosition: position
+                    };
+                }
+
+                continue;
+            }
+
+            if (depth > 1) {
+                token.consumed = true;
+                position++;
+                continue;
+            }
+
+            const nextToken = parser.tokens[position + 1];
+
+            if (
+                isGlobalParam(token.value) ||
+                isParamModifier(token.value) ||
+                isTrackParam(token.value) ||
+                isEffectType(token.value) ||
+                isEffectParam(token.value) ||
+                token.value === ">" ||
+                (nextToken && nextToken.value === ">")
+            ) {
+                addWarning(`Unclosed grouped state`, openToken.line);
+                return { state: null, nextPosition: position };
+            }
+
+            if (rule.numericOnly && !isNumericValue(token.value)) {
+                addWarning(`Grouped state expects numeric values`, token.line);
+                valid = false;
+            } else {
+                groupValues.push(token.value);
+            }
+
+            token.consumed = true;
+            position++;
+        }
+
+        addWarning(`Unclosed grouped state`, openToken.line);
+        return { state: null, nextPosition: position };
+    }   
 
     //Per gestionar multivalors despres d'un token
     function consumeValuesUntilKeyword(startPosition, keyword){
@@ -1663,6 +2172,28 @@ naryInput.init();
 
             // Si trobem un >, parem
             if (token.value === ">") {
+                break;
+            }
+
+            // GROUPED STATE
+            if (token.value === "(") {
+                const result = consumeGroupedState(position, rule, startLine);
+
+                if (result.state) {
+                    values.push(result.state);
+                }
+
+                position = result.nextPosition;
+
+                if (values.length >= rule.maxValues) {
+                    break;
+                }
+
+                continue;
+            }
+
+            // Un ')' suelto no és un valor.
+            if (token.value === ")") {
                 break;
             }
 
@@ -1759,6 +2290,7 @@ naryInput.init();
     function parse() {
         while (!parser.eof()) {
             const token = parser.peek();
+            const keyword = normalizeKeyword(token.value);
             if (token.consumed) {
                 parser.next();
                 continue;
@@ -1767,7 +2299,7 @@ naryInput.init();
             const nextToken = parser.tokens[parser.position + 1];
 
             // Comprova si tenim un repo
-            if (token.value === "repo") {
+            if (keyword === "repo") {
                 token.consumed = true;
                 parser.currentTarget = null;
                 const valueToken =
@@ -1794,7 +2326,7 @@ naryInput.init();
             }
 
             // Comprova si tenim un import
-            if (token.value === "import") {
+            if (keyword === "import") {
                 token.consumed = true;
                 parser.currentTarget = null;
                 const nameToken =
@@ -1828,12 +2360,8 @@ naryInput.init();
                 token.consumed = true;
                 parser.currentTarget = null;
                 const values =
-                    consumeValuesUntilKeyword(
-                        parser.position,
-                        token.value
-                    );
-                parser.globals[token.value] =
-                    values;
+                    consumeValuesUntilKeyword(parser.position, keyword);
+                parser.globals[keyword] = values;
                 parser.next();
                 continue;
             }
@@ -1866,12 +2394,8 @@ naryInput.init();
                 const currentTrack = parser.tracks.at(-1);
                 if (value) {
                     const values =
-                        consumeValuesUntilKeyword(
-                            parser.position,
-                            token.value
-                        );
-                    currentTrack.params[token.value] =
-                        values;
+                        consumeValuesUntilKeyword(parser.position, keyword);
+                    currentTrack.params[keyword] = values;
 
                     // source i loop no són
                     // paràmetres seqüenciables
@@ -1885,7 +2409,7 @@ naryInput.init();
                         parser.currentTarget = {
                             kind: "trackParam",
                             track: currentTrack,
-                            key: token.value
+                            key: keyword
                         };
                     }
                 }
@@ -1898,12 +2422,9 @@ naryInput.init();
                 token.consumed = true;
                 const currentTrack = parser.tracks.at(-1);
                 parser.currentEffect = {
-                    type: token.value,
+                    type: keyword,
                     values:
-                        consumeValuesUntilKeyword(
-                            parser.position,
-                            token.value
-                        ),
+                        consumeValuesUntilKeyword(parser.position, keyword),
                     modifiers: {},
                     paramModifiers: {}
                 };
@@ -1922,13 +2443,11 @@ naryInput.init();
             if (isEffectParam(token.value)) {
                 token.consumed = true;
                 parser.currentEffect[token.value] =
-                    consumeValuesUntilKeyword(
-                        parser.position, 
-                        token.value);
+                    consumeValuesUntilKeyword(parser.position, keyword);
                 parser.currentTarget = {
                     kind: "effectParam",
                     effect: parser.currentEffect,
-                    key: token.value
+                    key: keyword
                 };
                 parser.next();
                 continue;
@@ -2006,6 +2525,14 @@ naryInput.init();
                 continue;
             }
 
+            // Parèntesis fora d'un grouped state vàlid
+            if (token.value === "(" || token.value === ")") {
+                token.consumed = true;
+                addWarning(`Unexpected '${token.value}'`, token.line);
+                parser.next();
+                continue;
+            }
+
             // Si queda un identificador no consumit
             // dins d'un track, el considerem
             // un paràmetre desconegut.
@@ -2048,14 +2575,18 @@ naryInput.init();
     function compileTrackParams(track) {
         const params = {};
         for (const [key, values] of Object.entries(track.params)) {
-            params[key] = values.join(" ");
+            params[key] = sequenceStatesToString(values);
         }
         return params;
     }
 
     function compileTrackForEngine(track) {
-        const params =
-            compileTrackParams(track);
+        const params = compileTrackParams(track);
+        
+        params.__trackStates =
+            structuredClone(
+                track.params || {}
+            );
 
         // Modificadors dels TRACK_PARAMS
         // mentre aquests encara es consumeixen com params plans.
@@ -2123,6 +2654,27 @@ naryInput.init();
                 warning.line
             );
         }
+
+        // CONFIGURACIÓ GLOBAL D'OUTPUT multicanal: Aplica i valida channels
+        const requestedChannels = parser.globals.channels?.[0];
+
+        if (requestedChannels !== undefined) {
+            const channelCount = Number(requestedChannels);
+            const maxChannelCount = window.outputManager.getMaxChannelCount();
+
+            if (!Number.isInteger(channelCount) || channelCount < 1) {
+                statusError(`channels expects a positive integer`);
+            } else if (channelCount > maxChannelCount) {
+                statusError(`Requested ${channelCount} channels, but only ${maxChannelCount} are available`);
+            } else {
+                window.outputManager.setChannelCount(channelCount);
+            }
+        } else {
+            window.outputManager.setChannelCount(
+                Math.min(2, window.outputManager.getMaxChannelCount())
+            );
+        }
+
 
         // AST actual del codi executat
         window.currentAST = structuredClone(parser.tracks);
@@ -2300,6 +2852,91 @@ naryInput.init();
         window.activeLoops = {};
     }
 
+    //Funció per comentar i descomentar linies amb shortcuts
+    function toggleLineComment() {
+        const selection = editor.listSelections()[0];
+
+        let fromLine = selection.from().line;
+        let toLine = selection.to().line;
+
+        // Si la selecció acaba exactament al principi
+        // de la línia següent, aquella línia no compta.
+        if (
+            selection.to().ch === 0 &&
+            toLine > fromLine
+        ) {
+            toLine--;
+        }
+
+        const lines = [];
+
+        for (let lineNumber = fromLine; lineNumber <= toLine; lineNumber++) {
+            lines.push(editor.getLine(lineNumber));
+        }
+
+        // Ignorem línies buides per decidir
+        // si el bloc està comentat.
+        const nonEmptyLines =
+            lines.filter(line => line.trim() !== "");
+
+        const allCommented =
+            nonEmptyLines.length > 0 &&
+            nonEmptyLines.every(line =>
+                line.trimStart().startsWith("//")
+            );
+
+        const newLines = lines.map(line => {
+
+            // No tocar línies buides.
+            if (line.trim() === "") {
+                return line;
+            }
+
+            const indentation =
+                line.match(/^\s*/)?.[0] || "";
+
+            const content =
+                line.slice(indentation.length);
+
+            // Descomentar
+            if (allCommented) {
+                return content.startsWith("//")
+                    ? indentation + content.slice(2)
+                    : line;
+            }
+
+            // Comentar
+            return indentation + "//" + content;
+        });
+
+        editor.operation(() => {
+            editor.replaceRange(
+                newLines.join("\n"),
+                {
+                    line: fromLine,
+                    ch: 0
+                },
+                {
+                    line: toLine,
+                    ch: editor.getLine(toLine).length
+                }
+            );
+
+            // Mantenir seleccionat el bloc modificat
+            if (fromLine !== toLine) {
+                editor.setSelection(
+                    {
+                        line: fromLine,
+                        ch: 0
+                    },
+                    {
+                        line: toLine,
+                        ch: editor.getLine(toLine).length
+                    }
+                );
+            }
+        });
+    }
     // Per si fas clic fora de l'editor, que els shortcuts funcionin igual
     document.addEventListener('keydown', e => {
 
@@ -2313,56 +2950,17 @@ naryInput.init();
             stop();
         }
 
-        // CTRL + Ç → comentar/descomentar línia
+        // CTRL + Ç o CTRL + / → comentar/descomentar línia
         if (
             e.ctrlKey &&
-            (e.key === 'ç' || e.key === 'Ç')
+            (
+                e.key === "/" ||
+                e.key === "ç" ||
+                e.key === "Ç"
+            )
         ) {
             e.preventDefault();
-
-            const cursor = editor.getCursor();
-            const lineNumber = cursor.line;
-            const line = editor.getLine(lineNumber);
-
-            const indentation =
-                line.match(/^\s*/)?.[0] || "";
-
-            const content =
-                line.slice(indentation.length);
-
-            // Si ja està comentada → descomentar
-            if (content.startsWith("//")) {
-
-                editor.replaceRange(
-                    content.slice(2),
-                    {
-                        line: lineNumber,
-                        ch: indentation.length
-                    },
-                    {
-                        line: lineNumber,
-                        ch: line.length
-                    }
-                );
-
-            }
-
-            // Si no → comentar
-            else {
-
-                editor.replaceRange(
-                    "//" + content,
-                    {
-                        line: lineNumber,
-                        ch: indentation.length
-                    },
-                    {
-                        line: lineNumber,
-                        ch: line.length
-                    }
-                );
-
-            }
+            toggleLineComment();
         }
 
     });
