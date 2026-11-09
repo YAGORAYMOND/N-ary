@@ -54,6 +54,10 @@ ritme > source fatbass_1
    - el doble delay
    - shimmer /scatter /harmonics > Rescatar el que calgui. Veure com dividir i que siguin pedals. Pensar en microcosmos.
    - fase 8 : continuous pedal automation independent of sample events. (vol dir q lpf 800 1000 en un sample llarg va mutant-lo com en un pedal fisic, modula i igual amb el delay i dt.)
+   
+   - Problema a resoldre: fer que by default si no s'especifica res soni mono per els 2 canals 1 i 2, es a dir igual q si ch(1.5) ara em trobo q si el sample es stereo com "guit" sona per L R pero si es mono com "kick" nomes sona per ch(1)
+   - Problema greu de bufer i glitch amb el reverb actual... revisar!
+   
    -->
 
 
@@ -243,6 +247,7 @@ guit1 > source guitar loop 2
         "pitch",
         "ch",
         "ch_glide",
+        "begin",
         "len",
         "activity",
         "scatter",
@@ -804,10 +809,32 @@ guit1 > source guitar loop 2
                 statusError("Missing source");
                 statusUpdate();
                 return;
-            }  
-            if (!window.samples[sourceName]) {
+            } 
+
+            
+            const sampleUrl = window.samples[sourceName];
+            if (!sampleUrl) return;
+
+            const sampleBuffer = window.sampleBufferCache[sampleUrl];
+            if (!sampleBuffer) {
+                console.warn(`Sample buffer not loaded: ${sourceName}`);
                 return;
             }
+
+
+            //Función begin, per decidir on comença el sample
+            const beginStates = params.__trackStates?.begin;
+            const beginIndex = getSequenceStateIndex(
+                beginStates,
+                eventPosition,
+                getTrackRotate(params, "begin"),
+                window.loopIterations[id] || 0
+            );
+            const begin = Number(beginStates?.[beginIndex] ?? 0);
+            if (!(begin >= 0 && begin < sampleBuffer.duration)) return;
+
+
+
             const shimmer = params.shimmer ? parseFloat(params.shimmer) : 0;
             const scatter = params.scatter ? parseFloat(params.scatter) : 0;
             const harmonics = [1, 2, 1.5, 0.75, 4];
@@ -874,16 +901,24 @@ guit1 > source guitar loop 2
                     player.playbackRate = (Math.pow(2, p / 12) * h) + detune;
                     
                     //len
-                    const duration =
+                    const requestedDuration =
                         params.len
                             ? parseFloat(
                                 nary.getRegionValue(
                                     params.len,
-                                    eventPosition, //posicio del event defineix len
+                                    eventPosition,
                                     getTrackRotate(params, "len")
                                 )
                             )
                             : null;
+
+                    const playbackDuration =
+                        (sampleBuffer.duration - begin) / player.playbackRate;
+
+                    const duration =
+                        requestedDuration !== null && begin > 0
+                            ? Math.min(requestedDuration, playbackDuration)
+                            : requestedDuration;
 
                     player.connect(envelope);
                     
@@ -906,14 +941,19 @@ guit1 > source guitar loop 2
                     
                     //Envelope (ha donat molts problemes de clicks als samples, despres d'investigar així es robust)
                     if (duration !== null) {
+
+                        const fadeTime = begin > 0
+                            ? Math.min(0.03, duration / 2)
+                            : 0.03;
+    
                         envelope.gain.setValueAtTime(0, sampleTime);
                         envelope.gain.linearRampToValueAtTime(
                             vol,
-                            sampleTime + 0.03
+                            sampleTime + fadeTime
                         );
                         envelope.gain.setValueAtTime(
                             vol,
-                            sampleTime + duration - 0.03
+                            sampleTime + duration - fadeTime
                         );
                         envelope.gain.linearRampToValueAtTime(
                             0,
@@ -926,14 +966,11 @@ guit1 > source guitar loop 2
                         );
                     }
 
-                    player.start(sampleTime);
+                    player.start(sampleTime, begin);
 
                     if (duration !== null) {
                         player.stop(sampleTime + duration );
                     }
-
-                    const playbackDuration =
-                        player.buffer.duration / player.playbackRate;
 
                     const cleanupTime =
                         duration !== null
